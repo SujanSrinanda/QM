@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Portal - Quiz Mania</title>
+    <!-- Tailwind CSS for Layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Orbitron for Sci-Fi feel -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- CORE THEME & ANIMATIONS --- */
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --neon-purple: #bc13fe;
+            --dark-bg: #050510;
+            --glass-bg: rgba(10, 10, 30, 0.7);
+        }
+
+        html {
+            /* Removed CSS smooth scroll to let JS handle the timing precisely */
+            scroll-padding-top: 100px; 
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            font-family: 'Rajdhani', sans-serif;
+            color: white;
+            overflow-x: hidden;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--neon-blue);
+            border-radius: 4px;
+        }
+
+        /* Animated Grid Background */
+        .cyber-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200vw;
+            height: 200vh;
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+            animation: grid-move 20s linear infinite;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        @keyframes grid-move {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(50px) translateZ(-200px); }
+        }
+
+        /* Typography */
+        h1, h2, h3, .brand-font {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .neon-text-blue {
+            text-shadow: 0 0 5px var(--neon-blue), 0 0 10px var(--neon-blue);
+        }
+        
+        .neon-text-pink {
+            text-shadow: 0 0 5px var(--neon-pink), 0 0 10px var(--neon-pink);
+        }
+
+        /* Glass Panel Utility */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.05);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: 0.3s;
+        }
+        .glass-card:hover {
+            border-color: var(--neon-blue);
+            background: rgba(0, 243, 255, 0.05);
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
+        }
+
+        /* Nav Scanning Line */
+        .nav-scanline {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+            animation: scan-nav 4s linear infinite;
+        }
+        @keyframes scan-nav {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Glitch Effect */
+        .glitch {
+            position: relative;
+            color: white;
+        }
+        .glitch::before, .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--dark-bg);
+        }
+        .glitch::before {
+            left: 2px;
+            text-shadow: -2px 0 var(--neon-pink);
+            clip: rect(24px, 550px, 90px, 0);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+        .glitch::after {
+            left: -2px;
+            text-shadow: -2px 0 var(--neon-blue);
+            clip: rect(85px, 550px, 140px, 0);
+            animation: glitch-anim 2.5s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim {
+            0% { clip: rect(10px, 9999px, 30px, 0); }
+            100% { clip: rect(40px, 9999px, 70px, 0); }
+        }
+        @keyframes glitch-anim-2 {
+            0% { clip: rect(60px, 9999px, 10px, 0); }
+            100% { clip: rect(30px, 9999px, 80px, 0); }
+        }
+
+        /* Cyber Buttons */
+        .btn-cyber {
+            position: relative;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: white;
+            background: transparent;
+            border: 1px solid var(--neon-blue);
+            overflow: hidden;
+            transition: 0.3s;
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+        }
+        .btn-cyber:hover {
+            background: rgba(0, 243, 255, 0.1);
+            text-shadow: 0 0 10px var(--neon-blue);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+        }
+        .btn-cyber-pink {
+            border-color: var(--neon-pink);
+        }
+        .btn-cyber-pink:hover {
+            background: rgba(255, 0, 255, 0.1);
+            text-shadow: 0 0 10px var(--neon-pink);
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.4);
+        }
+    </style>
+</head>
+<body class="relative pt-20"> <!-- Added padding-top for fixed nav -->
+
+    <!-- Background Elements -->
+    <div class="cyber-grid"></div>
+    
+    <!-- Navigation Bar -->
+    <nav class="fixed top-0 w-full glass-panel z-50 px-6 py-4 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <!-- Logo -->
+            <a href="#home" class="flex items-center gap-2 group smooth-scroll-link">
+                <i class="fas fa-brain text-3xl text-pink-500 group-hover:animate-pulse"></i>
+                <div class="text-2xl font-bold tracking-widest text-white brand-font">
+                    QUIZ <span class="text-blue-400">MANIA</span>
+                </div>
+            </a>
+
+            <!-- Nav Links (Desktop) -->
+            <div class="hidden md:flex items-center gap-8 text-sm font-bold tracking-widest">
+                <!-- Updated href to #home for the first link -->
+                <a href="#home" class="text-gray-300 hover:text-blue-400 transition duration-300 smooth-scroll-link">HOME</a>
+                <a href="#features" class="text-gray-300 hover:text-blue-400 transition duration-300 smooth-scroll-link">FEATURES</a>
+                <a href="#how-it-works" class="text-gray-300 hover:text-blue-400 transition duration-300 smooth-scroll-link">HOW IT WORKS</a>
+                
+                <!-- Django Auth Check for Nav Items -->
+                {% if user.is_authenticated %}
+                <div id="nav-auth" class="flex gap-4">
+                    <a href="#" class="text-pink-400 hover:text-pink-300">
+                        <i class="fas fa-user-circle mr-1"></i> PROFESSOR
+                    </a>
+                    <a href="{% url 'logout' %}" class="border border-red-500 px-4 py-1 text-red-400 hover:bg-red-500/20 rounded text-xs flex items-center">LOGOUT</a>
+                </div>
+                {% else %}
+                <div id="nav-guest" class="flex gap-4 items-center">
+                    <a href="{% url 'login' %}" class="text-blue-400 hover:text-blue-300">LOGIN</a>
+                    <a href="{% url 'register' %}" class="bg-pink-600/20 border border-pink-500 px-6 py-2 hover:bg-pink-600/40 transition clip-path-button">
+                        REGISTER
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button class="md:hidden text-2xl text-blue-400">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <div class="nav-scanline"></div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="w-full">
+        
+        <!-- Hero Section -->
+        <!-- Added ID="home" for scrolling target -->
+        <section id="home" class="min-h-[90vh] flex flex-col items-center justify-center px-4 text-center relative">
+            <div class="glitch-wrapper mb-6 mt-10">
+                <h1 class="glitch md:text-8xl text-5xl font-black tracking-tighter" data-text="QUIZ MANIA">QUIZ MANIA</h1>
+            </div>
+            <p class="text-xl md:text-2xl text-blue-200 tracking-widest font-light opacity-80 neon-text-blue uppercase mb-12 max-w-2xl">
+                <span class="inline-block animate-pulse text-pink-500">▐</span> The Gamified Feedback Engine for Modern Classrooms
+            </p>
+
+            <!-- Dynamic Auth Block (Hero) -->
+            <div class="w-full max-w-3xl glass-panel p-1 rounded-xl relative z-20">
+                {% if user.is_authenticated %}
+                <div id="hero-auth" class="p-8 md:p-10">
+                    <div class="flex flex-col items-center mb-8">
+                        <h2 class="text-3xl font-bold mb-2">COMMAND CENTER</h2>
+                        <p class="text-blue-300 tracking-wider text-sm">READY TO ENGAGE?</p>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6 w-full">
+                        <!-- AI Mode Button -->
+                        <a href="{% url 'ai_quiz_generator' %}" class="group relative block w-full">
+                            <div class="absolute inset-0 bg-purple-500 blur-xl opacity-20 group-hover:opacity-40 transition duration-500"></div>
+                            <button class="btn-cyber w-full h-20 text-lg md:text-xl relative z-10 bg-black/20 group-hover:bg-black/40 transition">
+                                <div class="flex flex-col leading-none items-center">
+                                    <span class="text-[10px] text-purple-300 font-light tracking-[0.2em] mb-1">SMART CREATION</span>
+                                    <span class="flex items-center"><i class="fas fa-robot mr-3"></i> AI MODE</span>
+                                </div>
+                            </button>
+                        </a>
+
+                        <!-- Manual Quiz Adder Button -->
+                        <a href="{% url 'start_session' %}" class="group relative block w-full">
+                            <div class="absolute inset-0 bg-blue-500 blur-xl opacity-20 group-hover:opacity-40 transition duration-500"></div>
+                            <button class="btn-cyber w-full h-20 text-lg md:text-xl relative z-10 bg-black/20 group-hover:bg-black/40 transition">
+                                <div class="flex flex-col leading-none items-center">
+                                    <span class="text-[10px] text-blue-300 font-light tracking-[0.2em] mb-1">CUSTOM BUILD</span>
+                                    <span class="flex items-center"><i class="fas fa-plus-circle mr-3"></i> MANUAL QUIZ ADDER</span>
+                                </div>
+                            </button>
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <div id="hero-guest" class="p-8">
+                    <div class="flex flex-col md:flex-row gap-4 justify-center">
+                        <a href="{% url 'login' %}" class="btn-cyber w-full md:w-48 h-14 text-lg">TEACHER LOGIN</a>
+                        <a href="{% url 'register' %}" class="btn-cyber btn-cyber-pink w-full md:w-48 h-14 text-lg">GET STARTED</a>
+                    </div>
+                    <p class="mt-4 text-xs text-gray-400 tracking-wider">NO CREDIT CARD REQUIRED // FREE FOR EDUCATORS</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Scroll Indicator -->
+            <a href="#features" class="absolute bottom-10 animate-bounce smooth-scroll-link cursor-pointer">
+                <i class="fas fa-chevron-down text-blue-500 text-2xl"></i>
+            </a>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-20 px-6 max-w-7xl mx-auto">
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-1 w-10 bg-pink-500"></div>
+                <h2 class="text-3xl md:text-4xl font-bold">SYSTEM CAPABILITIES</h2>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="glass-card p-8 rounded-lg relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                        <i class="fas fa-gamepad text-9xl"></i>
+                    </div>
+                    <i class="fas fa-rocket text-4xl text-blue-400 mb-6"></i>
+                    <h3 class="text-xl font-bold mb-3">Gamified Engagement</h3>
+                    <p class="text-gray-400 leading-relaxed">
+                        Replace boring surveys with high-energy quizzes. Keep students awake and competing for the leaderboard top spot.
+                    </p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="glass-card p-8 rounded-lg relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                        <i class="fas fa-chart-line text-9xl"></i>
+                    </div>
+                    <i class="fas fa-bolt text-4xl text-pink-500 mb-6"></i>
+                    <h3 class="text-xl font-bold mb-3">Real-Time Analytics</h3>
+                    <p class="text-gray-400 leading-relaxed">
+                        Watch data flow in as it happens. Identify knowledge gaps instantly with our live heatmaps and performance graphs.
+                    </p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="glass-card p-8 rounded-lg relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                        <i class="fas fa-mobile-alt text-9xl"></i>
+                    </div>
+                    <i class="fas fa-wifi text-4xl text-purple-500 mb-6"></i>
+                    <h3 class="text-xl font-bold mb-3">Zero Friction Access</h3>
+                    <p class="text-gray-400 leading-relaxed">
+                        No apps to install. Students join via QR code or link on any device. 100% browser-based execution.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section id="how-it-works" class="py-20 px-6 max-w-7xl mx-auto border-t border-blue-900/30">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">OPERATION PROTOCOL</h2>
+                <p class="text-gray-400">Deploy your quiz in 3 simple steps</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8 text-center relative">
+                <!-- Connecting Line (Desktop) -->
+                <div class="hidden md:block absolute top-12 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent z-0"></div>
+
+                <!-- Step 1 -->
+                <div class="relative z-10">
+                    <div class="w-24 h-24 mx-auto bg-gray-900 border-2 border-blue-500 rounded-full flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(0,243,255,0.3)]">
+                        <span class="text-3xl font-bold text-white">01</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-blue-400 mb-2">INITIALIZE</h3>
+                    <p class="text-sm text-gray-400">Create your quiz or choose from our template library.</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="relative z-10">
+                    <div class="w-24 h-24 mx-auto bg-gray-900 border-2 border-pink-500 rounded-full flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(255,0,255,0.3)]">
+                        <span class="text-3xl font-bold text-white">02</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-pink-400 mb-2">DEPLOY</h3>
+                    <p class="text-sm text-gray-400">Project the Join Code on screen. Students enter the arena.</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="relative z-10">
+                    <div class="w-24 h-24 mx-auto bg-gray-900 border-2 border-purple-500 rounded-full flex items-center justify-center mb-6 shadow-[0_0_20px_rgba(188,19,254,0.3)]">
+                        <span class="text-3xl font-bold text-white">03</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-purple-400 mb-2">ANALYZE</h3>
+                    <p class="text-sm text-gray-400">Receive instant feedback and export reports for grading.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-blue-900/30 bg-black/40 py-10 mt-10">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="text-center md:text-left">
+                <div class="text-xl font-bold brand-font tracking-widest text-white mb-2">
+                    QUIZ <span class="text-pink-500">MANIA</span>
+                </div>
+                <p class="text-gray-500 text-xs tracking-wider">© 2024 GAMIFIED EDUCATION SYSTEMS</p>
+            </div>
+            <div class="flex gap-6">
+                <a href="#" class="text-gray-500 hover:text-blue-400 transition"><i class="fab fa-twitter text-xl"></i></a>
+                <a href="#" class="text-gray-500 hover:text-blue-400 transition"><i class="fab fa-github text-xl"></i></a>
+                <a href="#" class="text-gray-500 hover:text-blue-400 transition"><i class="fab fa-discord text-xl"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- 1. CUSTOM SMOOTH SCROLLING SCRIPT ---
+        // Standard 'scroll-behavior: smooth' can be too fast or inconsistent.
+        // This custom function ensures a controlled, visible scrolling animation.
+        
+        function smoothScroll(targetId, duration) {
+            const target = document.querySelector(targetId);
+            if (!target) return;
+
+            const headerOffset = 100; // Height of your fixed nav
+            const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+            const startPosition = window.pageYOffset;
+            const distance = targetPosition - startPosition;
+            let startTime = null;
+
+            function animation(currentTime) {
+                if (startTime === null) startTime = currentTime;
+                const timeElapsed = currentTime - startTime;
+                
+                // Easing function: easeInOutCubic (smoother start/end)
+                const run = ease(timeElapsed, startPosition, distance, duration);
+                
+                window.scrollTo(0, run);
+                
+                if (timeElapsed < duration) requestAnimationFrame(animation);
+            }
+
+            // Ease In Out Cubic function for natural movement
+            function ease(t, b, c, d) {
+                t /= d / 2;
+                if (t < 1) return c / 2 * t * t * t + b;
+                t -= 2;
+                return c / 2 * (t * t * t + 2) + b;
+            }
+
+            requestAnimationFrame(animation);
+        }
+
+        document.querySelectorAll('.smooth-scroll-link').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                // Duration set to 1000ms (1 second) to ensure visibility
+                smoothScroll(targetId, 1000); 
+            });
+        });
+    </script>
+
+</body>
+</html>

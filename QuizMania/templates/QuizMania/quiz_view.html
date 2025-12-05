@@ -1,0 +1,433 @@
+{% extends 'QuizMania/base.html' %}
+
+{% block title %}{{ quiz.title }} - Quiz Mania{% endblock %}
+
+{% block content %}
+
+    <!-- 
+        NEON THEME STYLES 
+    -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- THEME VARIABLES --- */
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --neon-green: #00ff9d;
+            --neon-red: #ff0055;
+            --dark-bg: #050510; 
+            --glass-bg: rgba(10, 10, 30, 0.6);
+        }
+
+        /* FORCE DARK BACKGROUND */
+        html, body {
+            background-color: var(--dark-bg) !important;
+            color: white !important;
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* AGGRESSIVE RESET */
+        body > div, main, section {
+            background-color: transparent !important;
+        }
+
+        /* --- ANIMATED BACKGROUND --- */
+        .cyber-grid-fixed {
+            position: fixed;
+            top: 0; left: 0; width: 200vw; height: 200vh;
+            background-color: var(--dark-bg); 
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+            animation: grid-move 20s linear infinite;
+            z-index: 0;
+            pointer-events: none;
+        }
+        @keyframes grid-move {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(50px) translateZ(-200px); }
+        }
+
+        /* --- UTILITIES --- */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .nav-scanline {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+            animation: scan-nav 4s linear infinite;
+        }
+        @keyframes scan-nav {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* --- QUIZ SPECIFIC STYLES --- */
+        
+        /* The Option Card (Label) */
+        .option-card {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            height: 100%; /* Equal height for grid */
+            padding: 1rem 1.5rem;
+            background: rgba(0, 20, 40, 0.5);
+            border: 1px solid #333;
+            border-left: 4px solid #444;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .option-card:hover {
+            background: rgba(0, 243, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Selection Indicator (Circle) */
+        .selection-indicator {
+            height: 18px;
+            width: 18px;
+            border: 2px solid #555;
+            border-radius: 50%;
+            margin-right: 15px;
+            position: relative;
+            transition: 0.3s;
+            flex-shrink: 0;
+        }
+
+        /* Checked State Logic using Tailwind 'peer' class */
+        input:checked + label .option-card {
+            background: rgba(0, 243, 255, 0.15);
+            border-color: var(--neon-blue);
+            border-left-color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+        }
+
+        input:checked + label .selection-indicator {
+            border-color: var(--neon-blue);
+            background-color: var(--neon-blue);
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        /* CORRECT / WRONG STATES */
+        .option-card.correct {
+            border-color: var(--neon-green) !important;
+            border-left-color: var(--neon-green) !important;
+            background: rgba(0, 255, 157, 0.15) !important;
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.3) !important;
+        }
+        .option-card.correct .selection-indicator {
+            border-color: var(--neon-green) !important;
+            background-color: var(--neon-green) !important;
+        }
+
+        .option-card.wrong {
+            border-color: var(--neon-red) !important;
+            border-left-color: var(--neon-red) !important;
+            background: rgba(255, 0, 85, 0.15) !important;
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.3) !important;
+        }
+        .option-card.wrong .selection-indicator {
+            border-color: var(--neon-red) !important;
+            background-color: var(--neon-red) !important;
+        }
+
+
+        /* TIMER SVG */
+        .timer-svg circle {
+            fill: none;
+            stroke-width: 4;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        .timer-bg {
+            stroke: #333;
+        }
+        .timer-progress {
+            stroke: var(--neon-blue);
+            transition: stroke-dashoffset 1s linear;
+        }
+
+    </style>
+
+    <!-- Background Animation -->
+    <div class="cyber-grid-fixed"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="fixed top-0 w-full glass-panel z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="relative flex h-3 w-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </span>
+                <span class="font-bold tracking-widest brand-font text-sm">SESSION ACTIVE</span>
+            </div>
+            
+            <!-- LIVE SCORE DISPLAY -->
+            <div class="flex items-center gap-6">
+                <div class="glass-panel px-4 py-1 rounded-full flex items-center gap-2 border-pink-500/50">
+                    <i class="fas fa-trophy text-pink-500"></i>
+                    <span class="font-orbitron font-bold text-pink-300" id="live-score">0 XP</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-user-astronaut text-blue-400"></i>
+                    <span class="text-sm tracking-wider">{{ user.username }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="nav-scanline"></div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="min-h-screen w-full flex justify-center px-4 pt-28 pb-20 relative z-10">
+        
+        <!-- Main Quiz Container -->
+        <div class="w-full max-w-4xl relative">
+            
+            <!-- Quiz Header -->
+            <div class="glass-panel p-8 rounded-xl mb-10 text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-neon-blue to-transparent"></div>
+                <h1 class="text-3xl md:text-5xl font-bold font-orbitron text-white tracking-wider mb-2">
+                    {{ quiz.title }}
+                </h1>
+                <p class="text-blue-300 text-sm tracking-[0.3em] uppercase">Interactive Assessment</p>
+            </div>
+
+            <!-- QUESTION CONTAINER -->
+            <div id="quiz-interface" class="relative">
+                
+                <!-- TIMER OVERLAY (Top Right) -->
+                <div class="absolute -top-6 right-0 md:-right-6 z-20">
+                    <div class="relative w-20 h-20 flex items-center justify-center">
+                        <svg class="timer-svg w-full h-full" viewBox="0 0 36 36">
+                            <path class="timer-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path class="timer-progress" id="timer-path" stroke-dasharray="100, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        </svg>
+                        <span id="timer-text" class="absolute font-orbitron font-bold text-xl text-white"></span>
+                    </div>
+                </div>
+
+                <!-- Questions will be injected here by JS -->
+                <div id="current-question-container">
+                    <!-- Loading... -->
+                </div>
+
+            </div>
+
+            <!-- Hidden Form for Final Submission -->
+            <form id="final-submit-form" method="post" class="hidden">
+                {% csrf_token %}
+                <!-- We will populate this with hidden inputs for answers if needed, 
+                     but for now we just need to submit the final score or answers to server.
+                     The current backend expects 'question_{id}' inputs. 
+                -->
+                <div id="hidden-inputs"></div>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- DATA PAYLOAD -->
+    <script>
+        const quizData = [
+            {% for question in quiz.questions.all %}
+            {
+                id: {{ question.id }},
+                text: "{{ question.text|escapejs }}",
+                marks: {{ question.marks }},
+                duration: {{ question.duration }},
+                choices: [
+                    {% for choice in question.choices.all %}
+                    {
+                        id: {{ choice.id }},
+                        text: "{{ choice.text|escapejs }}",
+                        is_correct: {{ choice.is_correct|lower }}
+                    },
+                    {% endfor %}
+                ]
+            },
+            {% endfor %}
+        ];
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let currentQuestionIndex = 0;
+            let currentScore = 0;
+            let timerInterval;
+            let timeLeft;
+            const userAnswers = {}; // Store { questionId: choiceId }
+
+            const container = document.getElementById('current-question-container');
+            const timerPath = document.getElementById('timer-path');
+            const timerText = document.getElementById('timer-text');
+            const liveScoreEl = document.getElementById('live-score');
+            const hiddenInputsContainer = document.getElementById('hidden-inputs');
+            const finalForm = document.getElementById('final-submit-form');
+
+            function loadQuestion(index) {
+                if (index >= quizData.length) {
+                    finishQuiz();
+                    return;
+                }
+
+                const question = quizData[index];
+                timeLeft = question.duration;
+                
+                // Render Question UI
+                container.innerHTML = `
+                    <div class="glass-panel p-6 md:p-8 rounded-xl relative animate-fade-in">
+                        <div class="absolute -top-4 -left-2 bg-black border border-blue-500 px-3 py-1 rounded text-neon-blue font-mono text-xs">
+                            Q${index + 1}/${quizData.length}
+                        </div>
+
+                        <div class="flex justify-between items-start mb-6 pl-2">
+                            <h3 class="text-xl md:text-2xl font-bold text-white leading-relaxed w-full pr-4">
+                                ${question.text}
+                            </h3>
+                            <div class="flex-shrink-0 bg-pink-900/30 border border-pink-500/50 px-3 py-1 rounded text-pink-300 text-xs font-bold tracking-wider">
+                                ${question.marks} XP
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pl-2">
+                            ${question.choices.map(choice => `
+                                <div class="relative h-full" onclick="selectOption(${question.id}, ${choice.id}, ${choice.is_correct})">
+                                    <div id="card-${choice.id}" class="option-card group">
+                                        <div class="selection-indicator"></div>
+                                        <span class="text-gray-300 text-lg font-medium group-hover:text-white transition">
+                                            ${choice.text}
+                                        </span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+
+                startTimer(question.duration);
+            }
+
+            function startTimer(duration) {
+                clearInterval(timerInterval);
+                let timePassed = 0;
+                timerText.innerText = timeLeft;
+                
+                // Reset circle
+                timerPath.style.strokeDashoffset = 0;
+                timerPath.style.stroke = 'var(--neon-blue)';
+
+                timerInterval = setInterval(() => {
+                    timePassed++;
+                    timeLeft = duration - timePassed;
+                    timerText.innerText = timeLeft;
+
+                    // Update Circle (Anti-clockwise)
+                    // Dasharray is 100. Offset goes from 0 to 100.
+                    const offset = (timePassed / duration) * 100;
+                    timerPath.style.strokeDashoffset = offset;
+
+                    if (timeLeft <= 3) {
+                        timerPath.style.stroke = 'var(--neon-red)';
+                    }
+
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        handleTimeout();
+                    }
+                }, 1000);
+            }
+
+            window.selectOption = function(questionId, choiceId, isCorrect) {
+                if (userAnswers[questionId]) return; // Already answered
+                clearInterval(timerInterval);
+
+                userAnswers[questionId] = choiceId;
+                
+                const card = document.getElementById(`card-${choiceId}`);
+                
+                if (isCorrect) {
+                    card.classList.add('correct');
+                    currentScore += quizData[currentQuestionIndex].marks;
+                    liveScoreEl.innerText = `${currentScore} XP`;
+                    // Play success sound if desired
+                } else {
+                    card.classList.add('wrong');
+                    // Highlight correct answer
+                    const correctChoice = quizData[currentQuestionIndex].choices.find(c => c.is_correct);
+                    if (correctChoice) {
+                        document.getElementById(`card-${correctChoice.id}`).classList.add('correct');
+                    }
+                }
+
+                // Wait 1.5s then next question
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    loadQuestion(currentQuestionIndex);
+                }, 1500);
+            };
+
+            function handleTimeout() {
+                const question = quizData[currentQuestionIndex];
+                userAnswers[question.id] = null; // No answer
+
+                // Show correct answer
+                const correctChoice = question.choices.find(c => c.is_correct);
+                if (correctChoice) {
+                    document.getElementById(`card-${correctChoice.id}`).classList.add('correct');
+                }
+
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    loadQuestion(currentQuestionIndex);
+                }, 1500);
+            }
+
+            function finishQuiz() {
+                container.innerHTML = `
+                    <div class="glass-panel p-10 rounded-xl text-center">
+                        <h2 class="text-3xl font-bold text-white mb-4">ASSESSMENT COMPLETE</h2>
+                        <p class="text-neon-blue text-xl mb-8">Submitting Results...</p>
+                        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500 mx-auto"></div>
+                    </div>
+                `;
+
+                // Populate hidden inputs for backend processing
+                Object.keys(userAnswers).forEach(qId => {
+                    const choiceId = userAnswers[qId];
+                    if (choiceId) {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = `question_${qId}`;
+                        input.value = choiceId;
+                        hiddenInputsContainer.appendChild(input);
+                    }
+                });
+
+                finalForm.submit();
+            }
+
+            // Start first question
+            loadQuestion(0);
+        });
+    </script>
+
+{% endblock %}

@@ -1,0 +1,21 @@
+
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.home, name='home'),
+    path('register/', views.register, name='register'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('ai_quiz_generator/', views.ai_quiz_generator, name='ai_quiz_generator'),
+    path('start_session/', views.start_session, name='start_session'),
+    path('quiz/<str:quiz_code>/', views.quiz_master_dashboard, name='quiz_master_dashboard'),
+    path('join_session/', views.join_session, name='join_session'),
+    path('quiz/<str:quiz_code>/results/', views.results_view, name='results_view'),
+    path('api/quiz/<str:quiz_code>/live_count/', views.live_count, name='live_count'),
+    path('api/quiz/<str:quiz_code>/live_scoreboard/', views.live_scoreboard, name='live_scoreboard'),
+    path('api/quiz/<str:quiz_code>/live_participants_list/', views.live_participants_list, name='live_participants_list'),
+    path('quiz/<str:quiz_code>/live_participants/', views.live_participants_view, name='live_participants'),
+    path('quiz/<str:quiz_code>/live_scoreboard/', views.live_scoreboard_view, name='live_scoreboard'),
+    path('quiz/<str:quiz_code>/<str:username>/', views.quiz_view, name='quiz_view'),
+]

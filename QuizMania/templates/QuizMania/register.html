@@ -1,0 +1,241 @@
+{% extends 'QuizMania/base.html' %}
+
+{% block title %}Register - Quiz Mania{% endblock %}
+
+{% block content %}
+
+    <!-- 
+        NEON THEME STYLES 
+        (Shared with Login page for consistency)
+    -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- THEME VARIABLES --- */
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --dark-bg: #050510; 
+            --glass-bg: rgba(10, 10, 30, 0.6);
+        }
+
+        /* FORCE DARK BACKGROUND ON BODY & HTML */
+        html, body {
+            background-color: var(--dark-bg) !important;
+            color: white !important;
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* AGGRESSIVE RESET */
+        body > div, main, section {
+            background-color: transparent !important;
+        }
+
+        /* --- ANIMATED BACKGROUND --- */
+        .cyber-grid-fixed {
+            position: fixed;
+            top: 0; left: 0; width: 200vw; height: 200vh;
+            background-color: var(--dark-bg); 
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+            animation: grid-move 20s linear infinite;
+            z-index: 0;
+            pointer-events: none;
+        }
+        @keyframes grid-move {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(50px) translateZ(-200px); }
+        }
+
+        /* --- UTILITIES --- */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        /* --- FORM STYLING --- */
+        .cyber-label {
+            display: block;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-blue);
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            text-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
+        }
+
+        .input-group input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #333;
+            border-left: 2px solid var(--neon-blue);
+            color: white;
+            padding: 12px 16px 12px 45px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.3s ease;
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 97% 100%, 0 100%);
+        }
+
+        .input-group input:focus {
+            background: rgba(0, 243, 255, 0.05);
+            border-color: var(--neon-pink);
+            border-left-color: var(--neon-pink);
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.1);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 23px; /* Fixed position for alignment */
+            transform: translateY(-50%);
+            color: #666;
+            transition: 0.3s;
+            z-index: 10;
+        }
+
+        .input-group:focus-within .input-icon {
+            color: var(--neon-blue);
+            text-shadow: 0 0 8px var(--neon-blue);
+        }
+
+        .btn-submit {
+            background: transparent;
+            border: 1px solid var(--neon-pink);
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-submit:hover {
+            background: rgba(255, 0, 255, 0.1);
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.4);
+            text-shadow: 0 0 8px var(--neon-pink);
+        }
+
+        /* Help Text Styling */
+        .help-text {
+            font-size: 0.75rem;
+            color: #8899a6;
+            margin-top: 0.5rem;
+            line-height: 1.4;
+        }
+        .help-text ul {
+            list-style-type: disc;
+            margin-left: 1.5rem;
+            margin-top: 0.25rem;
+        }
+    </style>
+
+    <!-- Background Animation -->
+    <div class="cyber-grid-fixed"></div>
+
+    <!-- Main Container -->
+    <div class="min-h-screen w-full flex items-center justify-center px-4 py-10 relative z-10">
+        
+        <!-- Register Card -->
+        <div class="glass-panel w-full max-w-lg p-8 md:p-10 rounded-xl relative">
+            
+            <!-- Decorative Header -->
+            <div class="text-center mb-8">
+                <div class="inline-block p-4 rounded-full border border-blue-500/50 bg-black/40 mb-4 shadow-[0_0_15px_rgba(0,243,255,0.2)]">
+                    <i class="fas fa-user-plus text-3xl text-pink-500"></i>
+                </div>
+                <h1 class="text-3xl font-bold font-orbitron text-white tracking-wider">
+                    NEW <span class="text-blue-400">ID</span>
+                </h1>
+                <p class="text-xs text-gray-400 tracking-[0.3em] mt-2">INITIALIZE REGISTRATION</p>
+            </div>
+
+            <!-- Register Form -->
+            <form method="post" class="cyber-form">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                <div class="mb-6 p-3 bg-red-900/30 border border-red-500 text-red-300 text-xs tracking-wide rounded">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    {{ form.non_field_errors|striptags }}
+                </div>
+                {% endif %}
+
+                <!-- Loop through all fields automatically -->
+                {% for field in form %}
+                <div class="mb-6">
+                    <label class="cyber-label" for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                    </label>
+                    
+                    <div class="relative input-group">
+                        <!-- Smart Icon Logic -->
+                        {% if 'pass' in field.name %}
+                            <i class="fas fa-lock input-icon"></i>
+                        {% elif 'email' in field.name %}
+                            <i class="fas fa-envelope input-icon"></i>
+                        {% elif 'user' in field.name %}
+                            <i class="fas fa-user input-icon"></i>
+                        {% else %}
+                            <i class="fas fa-edit input-icon"></i>
+                        {% endif %}
+
+                        {{ field }}
+                    </div>
+                    
+                    <!-- Help Text (e.g. Password requirements) -->
+                    {% if field.help_text %}
+                        <div class="help-text">{{ field.help_text|safe }}</div>
+                    {% endif %}
+
+                    <!-- Errors -->
+                    {% if field.errors %}
+                        <div class="text-red-400 text-xs mt-1 font-bold tracking-wide">
+                            {{ field.errors|striptags }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <!-- Submit Button -->
+                <div class="mt-8">
+                    <button type="submit" class="btn-submit w-full py-4 font-bold text-lg clip-path-button group">
+                        <span class="group-hover:animate-pulse">CREATE ACCOUNT</span> <i class="fas fa-check-circle ml-2 text-sm"></i>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Footer Link -->
+            <div class="mt-6 text-center border-t border-gray-700/50 pt-4">
+                <p class="text-gray-400 text-sm">
+                    Already have an ID? 
+                    <a href="{% url 'login' %}" class="text-blue-400 hover:text-pink-500 transition ml-1 font-bold tracking-wider">
+                        Login
+                    </a>
+                </p>
+            </div>
+
+            <!-- Decorative Corner Markers -->
+            <div class="absolute top-0 left-0 w-3 h-3 border-t border-l border-blue-500"></div>
+            <div class="absolute top-0 right-0 w-3 h-3 border-t border-r border-blue-500"></div>
+            <div class="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-blue-500"></div>
+            <div class="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-blue-500"></div>
+
+        </div>
+    </div>
+
+{% endblock %}
