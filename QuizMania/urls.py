@@ -8,6 +8,7 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('ai_quiz_generator/', views.ai_quiz_generator, name='ai_quiz_generator'),
+    path('review_generated_quiz/', views.review_generated_quiz, name='review_generated_quiz'),
     path('start_session/', views.start_session, name='start_session'),
     path('quiz/<str:quiz_code>/', views.quiz_master_dashboard, name='quiz_master_dashboard'),
     path('join_session/', views.join_session, name='join_session'),

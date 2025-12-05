@@ -38,60 +38,140 @@ def logout_view(request):
     logout(request)
     return redirect('home')
 
+from .ai_utils import extract_text_from_file, generate_quiz_from_text, process_user_intent
+
+from django.template.loader import render_to_string
+
 @login_required
 def ai_quiz_generator(request):
-    mcqs = None
     if request.method == 'POST':
-        # Placeholder for AI generation logic
-        # In a real scenario, you would process the uploaded 'document' and 'num_questions'
-        # using an AI model to generate MCQs.
-        # For demonstration, I'll create some dummy MCQs.
-        
         try:
-            num_questions = int(request.POST.get('num_questions', 1))
+            num_questions = int(request.POST.get('num_questions', 5))
+            if not (0 < num_questions <= 50):
+                num_questions = 5
         except (ValueError, TypeError):
-            num_questions = 1
-        uploaded_document = request.FILES.get('document')
-
-        # Dummy MCQ generation
-        mcqs = []
-        for i in range(num_questions):
-            mcqs.append({
-                'question': f'Dummy Question {i+1} from AI Mode?',
-                'options': {
-                    '1': 'Option A',
-                    '2': 'Option B',
-                    '3': 'Option C',
-                    '4': 'Option D',
-                },
-                'answer': 'Option A' # Dummy correct answer
-            })
+            num_questions = 5
         
-        # If the form action is to save the generated questions
-        if 'title' in request.POST:
-            quiz_title = request.POST.get('title')
-            quiz = Quiz.objects.create(title=quiz_title, owner=request.user)
-
-            for j in range(num_questions):
-                question_text = request.POST.get(f'question_text_{j+1}')
-                try:
-                    marks = int(request.POST.get(f'marks_{j+1}', 10))
-                    duration = int(request.POST.get(f'duration_{j+1}', 5))
-                except (ValueError, TypeError):
-                    marks = 10
-                    duration = 5
-                
-                question = Question.objects.create(quiz=quiz, text=question_text, marks=marks, duration=duration)
-
-                for k in range(1, 5): # Assuming 4 options
-                    option_text = request.POST.get(f'option_{k}_{j+1}')
-                    is_correct = (request.POST.get(f'correct_option_{j+1}') == str(k))
-                    Choice.objects.create(question=question, text=option_text, is_correct=is_correct)
+        user_input = request.POST.get('user_input', '').strip()
+        uploaded_document = request.FILES.get('document')
+        
+        # Check if we are in the generation phase (file uploaded or user input provided)
+        # and NOT in the saving phase (which is identified by 'title')
+        if 'title' not in request.POST and (uploaded_document or user_input):
             
-            return redirect('quiz_master_dashboard', quiz_code=quiz.code)
+            # Determine Intent
+            has_file = bool(uploaded_document)
+            intent = process_user_intent(user_input, has_file)
+            
+            if intent['type'] == 'chat':
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    html = render_to_string('QuizMania/partials/ai_chat_bubble_partial.html', {'response': intent['response']}, request=request)
+                    return JsonResponse({'html': html})
+            
+            else: # GENERATE
+                # 1. Prioritize explicitly submitted num_questions (from the box)
+                # Note: We already grabbed num_questions at the top of the view.
+                # But let's check if the user prompt has a specific override desire?
+                # Actually, usually the box is authoritative if present.
+                # But if the box is default (5) and prompt says "10", prompt should win.
+                # However, logic at top sets num_questions=5 on error.
+                
+                # Let's verify what we have.
+                print(f"DEBUG: Initial Num Questions: {num_questions}", flush=True)
 
+                import re
+                found_numbers = re.findall(r'\b\d+\b', user_input)
+                if found_numbers:
+                    try:
+                        parsed_num = int(found_numbers[0])
+                        # If prompt has a number, and it differs from default 5, let's use it?
+                        # Or if it differs from the box? 
+                        # User typed "Generate 2" but box says "10". 
+                        # Let's trust the Prompt as "Process User Intent" usually implies following instructions.
+                        if 0 < parsed_num <= 50:
+                            num_questions = parsed_num
+                            print(f"DEBUG: Overriding with Prompt Num: {num_questions}", flush=True)
+                    except ValueError:
+                        pass
+                
+                print(f"DEBUG: Final User Input: '{user_input}' | Num Questions: {num_questions}", flush=True)
+                
+                text = ""
+                if uploaded_document:
+                    text = extract_text_from_file(uploaded_document)
+                    if not text:
+                         print("ERROR: Failed to extract text from file", flush=True)
+                    else:
+                         print(f"DEBUG: Extracted Text Length: {len(text)}", flush=True)
+                
+                # Generate Questions
+                mcqs = generate_quiz_from_text(text, user_prompt=user_input, num_questions=num_questions)
+                print(f"DEBUG: Generated MCQs Count: {len(mcqs)}", flush=True)
+                
+                # AJAX Response for Chat Interface
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    html = render_to_string('QuizMania/partials/ai_response_partial.html', {'mcqs': mcqs}, request=request)
+                    return JsonResponse({'html': html})
+        
+        # Check if we are in the saving phase (title present) - Legacy handling if any
+        elif 'title' in request.POST:
+             # This block might not be reached directly anymore for saving via chat, 
+             # as we redirect to review page, but keeping for safety.
+             pass
 
-    return render(request, 'QuizMania/ai_quiz_generator.html', {'mcqs': mcqs})
+    return render(request, 'QuizMania/ai_quiz_generator.html')
+
+@login_required
+def review_generated_quiz(request):
+    if request.method == 'POST':
+        try:
+            try:
+                num_questions = int(request.POST.get('num_questions', 0))
+            except (ValueError, TypeError):
+                 num_questions = 0
+
+            title = request.POST.get('title', 'Generated Quiz')
+            questions = []
+
+            for i in range(1, num_questions + 1):
+                q_text = request.POST.get(f'question_text_{i}')
+                answer = request.POST.get(f'answer_{i}') # Suggested answer explanation or text
+                
+                options = {}
+                correct_option = None
+                
+                # Let's reconstruct standard options 1-4
+                for k in range(1, 5):
+                    opt_val = request.POST.get(f'option_{k}_{i}')
+                    if opt_val:
+                        options[k] = opt_val
+                
+                # Cast answer to int to match option keys
+                valid_answer = None
+                try:
+                    if answer:
+                         valid_answer = int(answer)
+                except (ValueError, TypeError):
+                    pass
+
+                # Let's just pass the data we have.
+                questions.append({
+                    'id': i,
+                    'text': q_text,
+                    'options': options,
+                    'correct_option': valid_answer, 
+                    'answer': answer # Keep original for debug
+                })
+
+            return render(request, 'QuizMania/review_quiz.html', {'title': title, 'questions': questions})
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(f"ERROR in review_generated_quiz: {e}")
+            return render(request, 'QuizMania/review_quiz.html', {'title': "Error Loading Quiz", 'questions': []})
+    
+    return redirect('ai_quiz_generator')
+
 
 @login_required
 def start_session(request):
