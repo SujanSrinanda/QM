@@ -1,7 +1,9 @@
 import pytesseract
 from PIL import Image
 from pypdf import PdfReader
+
 import requests
+from requests.exceptions import ConnectionError, ConnectTimeout
 import json
 import io
 import logging
@@ -76,7 +78,7 @@ def generate_quiz_from_text(text, user_prompt=None, num_questions=5, model="qwen
 
     all_questions = []
     attempts = 0
-    max_attempts = 15 # Significantly increased to ensure we meet quota even if model is lazy
+    max_attempts = max(15, num_questions + 10) # Give more attempts for larger requests
 
     while len(all_questions) < num_questions and attempts < max_attempts:
         attempts += 1
@@ -171,6 +173,11 @@ def generate_quiz_from_text(text, user_prompt=None, num_questions=5, model="qwen
                              
                              all_questions.append(item)
         
+        except (ConnectionError, ConnectTimeout) as e:
+            logger.error(f"Ollama Connection Error (Attempt {attempts}): {e}")
+            logger.error("Is Ollama running? Please start it with 'ollama serve'")
+            # Fail fast if the service is down, don't retry 15 times
+            break
         except Exception as e:
             logger.error(f"Generation Attempt {attempts} Error: {e}")
     

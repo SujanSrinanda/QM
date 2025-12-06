@@ -47,7 +47,7 @@ def ai_quiz_generator(request):
     if request.method == 'POST':
         try:
             num_questions = int(request.POST.get('num_questions', 5))
-            if not (0 < num_questions <= 50):
+            if not (0 < num_questions <= 200):
                 num_questions = 5
         except (ValueError, TypeError):
             num_questions = 5
@@ -88,7 +88,7 @@ def ai_quiz_generator(request):
                         # Or if it differs from the box? 
                         # User typed "Generate 2" but box says "10". 
                         # Let's trust the Prompt as "Process User Intent" usually implies following instructions.
-                        if 0 < parsed_num <= 50:
+                        if 0 < parsed_num <= 200:
                             num_questions = parsed_num
                             print(f"DEBUG: Overriding with Prompt Num: {num_questions}", flush=True)
                     except ValueError:
