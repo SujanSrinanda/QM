@@ -91,14 +91,18 @@ def generate_quiz_from_text(text, user_prompt=None, num_questions=5, model="qwen
         prompt = f"""
         You are a Quiz Generator AI. 
         Analyze the provided content and generate EXACTLY {current_needed} multiple-choice questions (MCQs).
-        If the provided content is insufficient, use your general knowledge about the topic to generate the questions.
-        {retry_instruction}
+        
+        CRITICAL INSTRUCTIONS:
+        1. **FACTUAL ACCURACY**: Ensure every Question and Answer is FACTUALLY CORRECT. Do not hallucinate statistics. If the content is missing, use verified general knowledge.
+        2. **CHAIN OF THOUGHT**: Generate an "explanation" for why the answer is correct to verify your own reasoning.
+        3. **UNIQUENESS**: {retry_instruction}
         
         FORMAT YOUR RESPONSE AS A VALID JSON ARRAY ONLY. NO MARKDOWN.
         Each item in the array must have:
         - "question": string
         - "options": dictionary with keys "1", "2", "3", "4"
         - "answer": string (the KEY of the correct option, e.g., "1", "2", "3", or "4")
+        - "explanation": string (Brief reason for the answer)
 
         Content:
         {context_str}

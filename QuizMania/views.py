@@ -2,12 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import Quiz, Question, Choice, QuizTaker
+from .models import Quiz, Question, Choice, QuizTaker, QuizHistory
 from django.contrib.auth.models import User
-from django.http import JsonResponse
-
-def home(request):
-    return render(request, 'QuizMania/home.html')
 
 def register(request):
     if request.user.is_authenticated:
@@ -80,7 +76,7 @@ def ai_quiz_generator(request):
                 print(f"DEBUG: Initial Num Questions: {num_questions}", flush=True)
 
                 import re
-                found_numbers = re.findall(r'\b\d+\b', user_input)
+                found_numbers = re.findall(r'\\b\\d+\\b', user_input)
                 if found_numbers:
                     try:
                         parsed_num = int(found_numbers[0])
@@ -216,7 +212,7 @@ def start_session(request):
 
 @login_required
 def quiz_master_dashboard(request, quiz_code):
-    quiz = get_object_or_404(Quiz, code=quiz_code, owner=request.user)
+    quiz = get_object_or_404(Quiz, code=quiz_code)
     quiz_takers = QuizTaker.objects.filter(quiz=quiz)
     return render(request, 'QuizMania/quiz_master_dashboard.html', {'quiz': quiz, 'quiz_takers': quiz_takers})
 
@@ -231,27 +227,44 @@ def join_session(request):
         try:
             quiz = Quiz.objects.get(code=code)
             
+            # Authenticated User Logic
             if request.user.is_authenticated:
-                if request.user.username == username:
+                if request.user.username == username: # Exact match
                     user = request.user
-                else:
-                    # User wants to join as someone else
-                    logout(request)
-                    # Proceed to create/get new user logic below
-                    if User.objects.filter(username=username).exists():
-                         return render(request, 'QuizMania/join_session.html', {'error': 'Username taken. Please choose another or login.'})
-                    user = User.objects.create_user(username=username)
-                    login(request, user)
+                else: 
+                     # Logout and create/login as guest
+                     logout(request)
+                     final_username = username
+                     # If username is taken, append random suffix to make it unique system-side
+                     # but keep 'username' as the display alias.
+                     if User.objects.filter(username=final_username).exists():
+                          import random
+                          suffix = str(random.randint(1000, 9999))
+                          final_username = f"{username}_{suffix}"
+                     
+                     # Create/Get user. If our random suffix collides (unlikely), it will error, but simple retry by user works.
+                     user = User.objects.create_user(username=final_username)
+                     login(request, user)
             else:
-                # Check if username is taken
-                if User.objects.filter(username=username).exists():
-                     return render(request, 'QuizMania/join_session.html', {'error': 'Username taken. Please choose another or login.'})
+                # Guest User Logic (if not authenticated or logged out)
+                final_username = username
+                # If username is taken, append random suffix to make it unique system-side
+                # but keep 'username' as the display alias.
+                if User.objects.filter(username=final_username).exists():
+                        import random
+                        suffix = str(random.randint(1000, 9999))
+                        final_username = f"{username}_{suffix}"
                 
-                # Create new guest user
-                user = User.objects.create_user(username=username)
+                # Create/Get user. If our random suffix collides (unlikely), it will error, but simple retry by user works.
+                user = User.objects.create_user(username=final_username)
                 login(request, user)
 
-            quiz_taker, created = QuizTaker.objects.get_or_create(quiz=quiz, user=user)
+            # Create QuizTaker with the preferred ALIAS
+            # Check if this alias is already in THIS specific quiz
+            if QuizTaker.objects.filter(quiz=quiz, alias=username).exists():
+                 return render(request, 'QuizMania/join_session.html', {'error': f"The name '{username}' is already in this quiz. Please choose another."})
+
+            quiz_taker, created = QuizTaker.objects.get_or_create(quiz=quiz, user=user, defaults={'alias': username})
             return redirect('quiz_view', quiz_code=quiz.code, username=user.username)
         except (Quiz.DoesNotExist, ValueError):
             return render(request, 'QuizMania/join_session.html', {'error': 'Invalid quiz code'})
@@ -282,7 +295,13 @@ def quiz_view(request, quiz_code, username):
 
 def results_view(request, quiz_code):
     quiz = get_object_or_404(Quiz, code=quiz_code)
-    quiz_takers = QuizTaker.objects.filter(quiz=quiz).order_by('-score')[:5]
+    
+    # If owner, show ALL. If student, show top 5.
+    if request.user == quiz.owner:
+        quiz_takers = QuizTaker.objects.filter(quiz=quiz).order_by('-score')
+    else:
+        quiz_takers = QuizTaker.objects.filter(quiz=quiz).order_by('-score')[:5]
+        
     return render(request, 'QuizMania/results.html', {'quiz': quiz, 'quiz_takers': quiz_takers})
 
 def live_count(request, quiz_code):
@@ -293,23 +312,83 @@ def live_count(request, quiz_code):
 def live_scoreboard(request, quiz_code):
     quiz = get_object_or_404(Quiz, code=quiz_code)
     quiz_takers = QuizTaker.objects.filter(quiz=quiz).order_by('-score')
-    data = [{'username': taker.user.username, 'score': taker.score} for taker in quiz_takers]
+    data = [{'username': taker.alias, 'score': taker.score} for taker in quiz_takers]
     return JsonResponse(data, safe=False)
 
 def live_participants_list(request, quiz_code):
     quiz = get_object_or_404(Quiz, code=quiz_code)
     quiz_takers = QuizTaker.objects.filter(quiz=quiz)
-    data = [{'username': taker.user.username} for taker in quiz_takers]
+    data = [{'username': taker.alias} for taker in quiz_takers]
     return JsonResponse(data, safe=False)
 
 
 @login_required
 def live_participants_view(request, quiz_code):
-    quiz = get_object_or_404(Quiz, code=quiz_code, owner=request.user)
+    quiz = get_object_or_404(Quiz, code=quiz_code)
     quiz_takers = QuizTaker.objects.filter(quiz=quiz)
     return render(request, 'QuizMania/live_participants.html', {'quiz': quiz, 'quiz_takers': quiz_takers})
 
 @login_required
 def live_scoreboard_view(request, quiz_code):
-    quiz = get_object_or_404(Quiz, code=quiz_code, owner=request.user)
+    quiz = get_object_or_404(Quiz, code=quiz_code)
     return render(request, 'QuizMania/live_scoreboard.html', {'quiz': quiz})
+
+@login_required
+def end_session_view(request, quiz_code):
+    quiz = get_object_or_404(Quiz, code=quiz_code)
+    
+    # Only owner can end session
+    if request.user != quiz.owner:
+        return redirect('quiz_master_dashboard', quiz_code=quiz_code)
+
+    # Archive to History
+    takers = QuizTaker.objects.filter(quiz=quiz)
+    history_records = []
+    
+    for taker in takers:
+        history_records.append(QuizHistory(
+            quiz=quiz,
+            player_name=taker.alias,
+            score=taker.score
+        ))
+    
+    if history_records:
+        QuizHistory.objects.bulk_create(history_records)
+
+    # Update quiz timestamp to mark as recently active
+    quiz.save()
+
+    # Clear active session (Refresh)
+    takers.delete()
+    
+    return redirect('home')
+
+@login_required
+def home(request):
+    quizzes = []
+    quiz_count = 0
+    if request.user.is_authenticated:
+        # Order by updated_at so most recently used quizzes appear first
+        quizzes = Quiz.objects.filter(owner=request.user).order_by('-updated_at')
+        quiz_count = quizzes.count()
+    return render(request, 'QuizMania/home.html', {'quizzes': quizzes, 'quiz_count': quiz_count})
+
+@login_required
+def delete_quiz(request, quiz_code):
+    quiz = get_object_or_404(Quiz, code=quiz_code, owner=request.user)
+    if request.method == 'POST':
+        quiz.delete()
+    return redirect('home')
+
+@login_required
+def quiz_history_view(request, quiz_code):
+    quiz = get_object_or_404(Quiz, code=quiz_code, owner=request.user)
+    history = QuizHistory.objects.filter(quiz=quiz).order_by('-completed_at')
+    return render(request, 'QuizMania/quiz_history.html', {'quiz': quiz, 'history': history})
+
+@login_required
+def delete_quiz_history(request, quiz_code):
+    quiz = get_object_or_404(Quiz, code=quiz_code, owner=request.user)
+    if request.method == 'POST':
+        QuizHistory.objects.filter(quiz=quiz).delete()
+    return redirect('quiz_history', quiz_code=quiz_code)

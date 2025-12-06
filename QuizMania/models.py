@@ -16,6 +16,7 @@ class Quiz(models.Model):
     title = models.CharField(max_length=255)
     code = models.CharField(max_length=6, default=generate_unique_code, editable=False, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.title
@@ -40,7 +41,17 @@ class Choice(models.Model):
 class QuizTaker(models.Model):
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    alias = models.CharField(max_length=255, default="Guest")
     score = models.IntegerField(default=0)
     
     def __str__(self):
         return self.user.username
+
+class QuizHistory(models.Model):
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='history')
+    player_name = models.CharField(max_length=255)
+    score = models.IntegerField()
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.player_name} - {self.quiz.title}"

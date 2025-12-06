@@ -17,6 +17,10 @@ urlpatterns = [
     path('api/quiz/<str:quiz_code>/live_scoreboard/', views.live_scoreboard, name='live_scoreboard'),
     path('api/quiz/<str:quiz_code>/live_participants_list/', views.live_participants_list, name='live_participants_list'),
     path('quiz/<str:quiz_code>/live_participants/', views.live_participants_view, name='live_participants'),
-    path('quiz/<str:quiz_code>/live_scoreboard/', views.live_scoreboard_view, name='live_scoreboard'),
+    path('quiz/<str:quiz_code>/live_scoreboard/', views.live_scoreboard_view, name='live_scoreboard_view'),
+    path('quiz/<str:quiz_code>/end/', views.end_session_view, name='end_session'),
+    path('quiz/<str:quiz_code>/history/', views.quiz_history_view, name='quiz_history'),
+    path('quiz/<str:quiz_code>/history/delete/', views.delete_quiz_history, name='delete_quiz_history'),
+    path('quiz/<str:quiz_code>/delete/', views.delete_quiz, name='delete_quiz'),
     path('quiz/<str:quiz_code>/<str:username>/', views.quiz_view, name='quiz_view'),
 ]
