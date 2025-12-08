@@ -384,29 +384,13 @@ def end_session_view(request, quiz_code):
     
     # Only owner can end session
     if request.user != quiz.owner:
-        print(f"DEBUG: Unauthorized End Session Attempt. User: {request.user}, Owner: {quiz.owner}", flush=True)
         return redirect('quiz_master_dashboard', quiz_code=quiz_code)
-
-    # Log to file for debugging
-    import datetime
-    with open("debug_log.txt", "a") as f:
-        f.write(f"\n[{datetime.datetime.now()}] END SESSION for {quiz.code}\n")
-        f.write(f"Owner: {quiz.owner}, Request User: {request.user}\n")
 
     # Archive to History
     takers = QuizTaker.objects.filter(quiz=quiz)
-    count = takers.count()
-    print(f"DEBUG: Found {count} active participants to archive.", flush=True)
-
-    with open("debug_log.txt", "a") as f:
-        f.write(f"Found {count} participants to archive.\n")
     
     history_records = []
     for taker in takers:
-        print(f"DEBUG: Archiving - Player: {taker.alias}, Score: {taker.score}", flush=True)
-        with open("debug_log.txt", "a") as f:
-             f.write(f"Archiving: {taker.alias} - Score: {taker.score}\n")
-             
         history_records.append(QuizHistory(
             quiz=quiz,
             player_name=taker.alias,
@@ -414,21 +398,13 @@ def end_session_view(request, quiz_code):
         ))
     
     if history_records:
-        created = QuizHistory.objects.bulk_create(history_records)
-        print(f"DEBUG: Successfully created {len(created)} history records.", flush=True)
-        with open("debug_log.txt", "a") as f:
-            f.write(f"Successfully created {len(created)} history records.\n")
-    else:
-        print("DEBUG: No records to archive!", flush=True)
-        with open("debug_log.txt", "a") as f:
-            f.write("No records to archive!\n")
+        QuizHistory.objects.bulk_create(history_records)
 
     # Update quiz timestamp to mark as recently active
     quiz.save()
 
     # Clear active session (Refresh)
-    deleted_count, _ = QuizTaker.objects.filter(quiz=quiz).delete()
-    print(f"DEBUG: Deleted {deleted_count} QuizTaker records for quiz {quiz.code}", flush=True)
+    QuizTaker.objects.filter(quiz=quiz).delete()
     
     # Redirect to history page so user sees the result immediately
     return redirect('quiz_history', quiz_code=quiz.code)
