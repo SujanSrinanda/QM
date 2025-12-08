@@ -1,0 +1,375 @@
+{% extends 'QuizMania/base.html' %}
+
+{% block title %}Start Session - Quiz Mania{% endblock %}
+
+{% block content %}
+
+    <!-- 
+        NEON THEME STYLES 
+    -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- THEME VARIABLES --- */
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --dark-bg: #050510; 
+            --glass-bg: rgba(10, 10, 30, 0.6);
+        }
+
+        /* FORCE DARK BACKGROUND */
+        html, body {
+            background-color: var(--dark-bg) !important;
+            color: white !important;
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* AGGRESSIVE RESET */
+        body > div, main, section {
+            background-color: transparent !important;
+        }
+
+        /* --- ANIMATED BACKGROUND --- */
+        .cyber-grid-fixed {
+            position: fixed;
+            top: 0; left: 0; width: 200vw; height: 200vh;
+            background-color: var(--dark-bg); 
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+            animation: grid-move 20s linear infinite;
+            z-index: 0;
+            pointer-events: none;
+        }
+        @keyframes grid-move {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(50px) translateZ(-200px); }
+        }
+
+        /* --- UTILITIES --- */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        /* --- NAV BAR STYLES --- */
+        .nav-scanline {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+            animation: scan-nav 4s linear infinite;
+        }
+        @keyframes scan-nav {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* --- FORM STYLING --- */
+        .cyber-label {
+            display: block;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-blue);
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            text-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
+        }
+
+        .input-group input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #333;
+            border-left: 2px solid var(--neon-blue);
+            color: white;
+            padding: 12px 16px 12px 45px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.3s ease;
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 97% 100%, 0 100%);
+        }
+
+        .input-group input:focus {
+            background: rgba(0, 243, 255, 0.05);
+            border-color: var(--neon-pink);
+            border-left-color: var(--neon-pink);
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.1);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            transition: 0.3s;
+            z-index: 10;
+        }
+
+        .input-group:focus-within .input-icon {
+            color: var(--neon-blue);
+            text-shadow: 0 0 8px var(--neon-blue);
+        }
+
+        /* Cyber Buttons */
+        .btn-cyber {
+            position: relative;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: white;
+            background: transparent;
+            border: 1px solid var(--neon-blue);
+            overflow: hidden;
+            transition: 0.3s;
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            padding: 1rem 2rem;
+            cursor: pointer;
+        }
+        .btn-cyber:hover {
+            background: rgba(0, 243, 255, 0.1);
+            text-shadow: 0 0 10px var(--neon-blue);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+        }
+        
+        .btn-cyber-pink {
+            border-color: var(--neon-pink);
+        }
+        .btn-cyber-pink:hover {
+            background: rgba(255, 0, 255, 0.1);
+            text-shadow: 0 0 10px var(--neon-pink);
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.4);
+        }
+    </style>
+
+    <!-- Background Animation -->
+    <div class="cyber-grid-fixed"></div>
+
+    <!-- Navigation Bar (Included for Logout/Home Access) -->
+    <nav class="fixed top-0 w-full glass-panel z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <!-- Logo (Redirects to Home) -->
+            <a href="/" class="flex items-center gap-2 group">
+                <i class="fas fa-brain text-3xl text-pink-500 group-hover:animate-pulse"></i>
+                <div class="text-2xl font-bold tracking-widest text-white" style="font-family: 'Orbitron', sans-serif;">
+                    QUIZ <span class="text-blue-400">MANIA</span>
+                </div>
+            </a>
+
+            <!-- Nav Links -->
+            <div class="hidden md:flex items-center gap-8 text-sm font-bold tracking-widest">
+                
+                <!-- Auth Links -->
+                {% if user.is_authenticated %}
+                <div class="flex gap-4 items-center">
+                    <!-- Logout Button -->
+                    <a href="{% url 'logout' %}" class="border border-red-500 px-4 py-1 text-red-400 hover:bg-red-500/20 rounded text-xs flex items-center transition">
+                        LOGOUT
+                    </a>
+                </div>
+                {% else %}
+                <div class="flex gap-4 items-center">
+                    <a href="{% url 'login' %}" class="text-blue-400 hover:text-blue-300">LOGIN</a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button class="md:hidden text-2xl text-blue-400">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <div class="nav-scanline"></div>
+    </nav>
+
+    <!-- Main Container -->
+    <!-- Added pt-24 to push content below the fixed navbar -->
+    <div class="min-h-screen w-full flex items-center justify-center px-4 pt-24 pb-10 relative z-10">
+        
+        <!-- Quiz Creator Card -->
+        <div class="glass-panel w-full max-w-2xl p-8 md:p-12 rounded-xl relative">
+            
+            <!-- Header -->
+            <div class="text-center mb-10">
+                <div class="inline-block p-4 rounded-full border border-blue-500/50 bg-black/40 mb-4 shadow-[0_0_15px_rgba(0,243,255,0.2)]">
+                    <i class="fas fa-drafting-compass text-3xl text-pink-500"></i>
+                </div>
+                <h1 class="text-3xl font-bold font-orbitron text-white tracking-wider">
+                    START NEW <span class="text-blue-400">QUIZ</span>
+                </h1>
+                <p class="text-xs text-gray-400 tracking-[0.3em] mt-2">CONFIGURE SESSION PARAMETERS</p>
+            </div>
+
+            <!-- Form -->
+            <form method="post" class="cyber-form" id="quiz-form">
+                {% csrf_token %}
+                
+                <!-- Title Field (Space for Title) -->
+                <div class="mb-10">
+                    <label class="cyber-label" for="id_title">Session Title</label>
+                    <div class="relative input-group">
+                        <i class="fas fa-heading input-icon"></i>
+                        <!-- EXPLICIT INPUT BOX ADDED HERE -->
+                        <input type="text" name="title" id="id_title" placeholder="Enter session title..." required>
+                    </div>
+                    {% if form.title.errors %}
+                        <div class="text-red-400 text-xs mt-1">{{ form.title.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Container for dynamically added questions -->
+                <div id="questions-container"></div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col md:flex-row gap-6 justify-center pt-4 border-t border-gray-700/50">
+                    
+                    <!-- Add Question Button -->
+                    <button type="button" id="add-question-btn" class="btn-cyber w-full md:w-auto group">
+                        <i class="fas fa-plus mr-2 group-hover:rotate-90 transition-transform"></i> 
+                        ADD QUESTION
+                    </button>
+
+                    <!-- Start Quiz Button -->
+                    <button type="submit" class="btn-cyber btn-cyber-pink w-full md:w-auto group">
+                        <i class="fas fa-rocket mr-2 group-hover:animate-bounce"></i> 
+                        START QUIZ
+                    </button>
+                    
+                </div>
+            </form>
+
+            <!-- Decorative Corner Markers -->
+            <div class="absolute top-0 left-0 w-3 h-3 border-t border-l border-blue-500"></div>
+            <div class="absolute top-0 right-0 w-3 h-3 border-t border-r border-blue-500"></div>
+            <div class="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-blue-500"></div>
+            <div class="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-blue-500"></div>
+
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addQuestionBtn = document.getElementById('add-question-btn');
+    const questionsContainer = document.getElementById('questions-container');
+    let questionCounter = 0;
+
+    addQuestionBtn.addEventListener('click', function() {
+        questionCounter++;
+
+        const questionBlock = document.createElement('div');
+        questionBlock.classList.add('question-block', 'mb-8', 'p-6', 'border', 'border-gray-700', 'rounded-lg', 'relative');
+        questionBlock.setAttribute('data-question-id', questionCounter);
+
+        questionBlock.innerHTML = `
+            <h3 class="text-xl font-orbitron text-neon-pink mb-4">Question ${questionCounter}</h3>
+            
+            <button type="button" class="absolute top-4 right-4 text-red-500 hover:text-red-400 remove-question-btn">
+                <i class="fas fa-times-circle text-xl"></i>
+            </button>
+
+            <div class="mb-4">
+                <label class="cyber-label" for="id_question_text_${questionCounter}">Question Text</label>
+                <div class="relative input-group">
+                    <i class="fas fa-question-circle input-icon"></i>
+                    <input type="text" name="question_text_${questionCounter}" id="id_question_text_${questionCounter}" placeholder="Enter the question..." required>
+                </div>
+            </div>
+
+            <!-- NEW: Duration and Marks -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="cyber-label" for="id_duration_${questionCounter}">Timer (Seconds)</label>
+                    <div class="relative input-group">
+                        <i class="fas fa-stopwatch input-icon"></i>
+                        <input type="number" name="duration_${questionCounter}" id="id_duration_${questionCounter}" value="5" min="1" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="cyber-label" for="id_marks_${questionCounter}">Score (XP)</label>
+                    <div class="relative input-group">
+                        <i class="fas fa-star input-icon"></i>
+                        <input type="number" name="marks_${questionCounter}" id="id_marks_${questionCounter}" value="10" min="1" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="cyber-label" for="id_option_1_${questionCounter}">Option 1</label>
+                    <div class="relative input-group">
+                        <i class="fas fa-stream input-icon"></i>
+                        <input type="text" name="option_1_${questionCounter}" id="id_option_1_${questionCounter}" placeholder="Option 1" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="cyber-label" for="id_option_2_${questionCounter}">Option 2</label>
+                    <div class="relative input-group">
+                        <i class="fas fa-stream input-icon"></i>
+                        <input type="text" name="option_2_${questionCounter}" id="id_option_2_${questionCounter}" placeholder="Option 2" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="cyber-label" for="id_option_3_${questionCounter}">Option 3</label>
+                    <div class="relative input-group">
+                        <i class="fas fa-stream input-icon"></i>
+                        <input type="text" name="option_3_${questionCounter}" id="id_option_3_${questionCounter}" placeholder="Option 3" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="cyber-label" for="id_option_4_${questionCounter}">Option 4</label>
+                    <div class="relative input-group">
+                        <i class="fas fa-stream input-icon"></i>
+                        <input type="text" name="option_4_${questionCounter}" id="id_option_4_${questionCounter}" placeholder="Option 4" required>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="cyber-label">Correct Answer</label>
+                <div class="flex items-center gap-x-6 gap-y-2 flex-wrap text-sm">
+                    <div class="flex items-center gap-2">
+                        <input type="radio" name="correct_option_${questionCounter}" value="1" id="id_correct_1_${questionCounter}" class="form-radio h-4 w-4 text-neon-blue bg-gray-700 border-gray-600 focus:ring-neon-blue" required>
+                        <label for="id_correct_1_${questionCounter}">Option 1</label>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="radio" name="correct_option_${questionCounter}" value="2" id="id_correct_2_${questionCounter}" class="form-radio h-4 w-4 text-neon-blue bg-gray-700 border-gray-600 focus:ring-neon-blue">
+                        <label for="id_correct_2_${questionCounter}">Option 2</label>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="radio" name="correct_option_${questionCounter}" value="3" id="id_correct_3_${questionCounter}" class="form-radio h-4 w-4 text-neon-blue bg-gray-700 border-gray-600 focus:ring-neon-blue">
+                        <label for="id_correct_3_${questionCounter}">Option 3</label>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="radio" name="correct_option_${questionCounter}" value="4" id="id_correct_4_${questionCounter}" class="form-radio h-4 w-4 text-neon-blue bg-gray-700 border-gray-600 focus:ring-neon-blue">
+                        <label for="id_correct_4_${questionCounter}">Option 4</label>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        questionsContainer.appendChild(questionBlock);
+
+        // Add event listener for the remove button
+        questionBlock.querySelector('.remove-question-btn').addEventListener('click', function() {
+            questionBlock.remove();
+        });
+    });
+});
+</script>
+{% endblock %}

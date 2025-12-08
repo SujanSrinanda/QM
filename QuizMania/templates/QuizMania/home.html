@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Portal - Quiz Mania</title>
+    <!-- Tailwind CSS for Layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Orbitron for Sci-Fi feel -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- CORE THEME & ANIMATIONS --- */
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --neon-purple: #bc13fe;
+            --dark-bg: #050510;
+            --glass-bg: rgba(10, 10, 30, 0.7);
+        }
+
+        html {
+            scroll-padding-top: 100px;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            font-family: 'Rajdhani', sans-serif;
+            color: white;
+            overflow-x: hidden;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--neon-blue);
+            border-radius: 4px;
+        }
+
+        /* Animated Grid Background */
+        .cyber-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200vw;
+            height: 200vh;
+            background-image:
+                linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+            animation: grid-move 20s linear infinite;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        @keyframes grid-move {
+            0% {
+                transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px);
+            }
+
+            100% {
+                transform: perspective(500px) rotateX(60deg) translateY(50px) translateZ(-200px);
+            }
+        }
+
+        /* Typography */
+        h1,
+        h2,
+        h3,
+        .brand-font {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .neon-text-blue {
+            text-shadow: 0 0 5px var(--neon-blue), 0 0 10px var(--neon-blue);
+        }
+
+        .neon-text-pink {
+            text-shadow: 0 0 5px var(--neon-pink), 0 0 10px var(--neon-pink);
+        }
+
+        /* Glass Panel Utility */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.05);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: 0.3s;
+        }
+
+        .glass-card:hover {
+            border-color: var(--neon-blue);
+            background: rgba(0, 243, 255, 0.05);
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
+        }
+
+        /* Nav Scanning Line */
+        .nav-scanline {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+            animation: scan-nav 4s linear infinite;
+        }
+
+        @keyframes scan-nav {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        /* Glitch Effect */
+        .glitch {
+            position: relative;
+            color: white;
+        }
+
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--dark-bg);
+        }
+
+        .glitch::before {
+            left: 2px;
+            text-shadow: -2px 0 var(--neon-pink);
+            clip: rect(24px, 550px, 90px, 0);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+
+        .glitch::after {
+            left: -2px;
+            text-shadow: -2px 0 var(--neon-blue);
+            clip: rect(85px, 550px, 140px, 0);
+            animation: glitch-anim 2.5s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim {
+            0% {
+                clip: rect(10px, 9999px, 30px, 0);
+            }
+
+            100% {
+                clip: rect(40px, 9999px, 70px, 0);
+            }
+        }
+
+        @keyframes glitch-anim-2 {
+            0% {
+                clip: rect(60px, 9999px, 10px, 0);
+            }
+
+            100% {
+                clip: rect(30px, 9999px, 80px, 0);
+            }
+        }
+
+        /* Cyber Buttons */
+        .btn-cyber {
+            position: relative;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: white;
+            background: transparent;
+            border: 1px solid var(--neon-blue);
+            overflow: hidden;
+            transition: 0.3s;
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+        }
+
+        .btn-cyber:hover {
+            background: rgba(0, 243, 255, 0.1);
+            text-shadow: 0 0 10px var(--neon-blue);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+        }
+
+        .btn-cyber-pink {
+            border-color: var(--neon-pink);
+        }
+
+        .btn-cyber-pink:hover {
+            background: rgba(255, 0, 255, 0.1);
+            text-shadow: 0 0 10px var(--neon-pink);
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.4);
+        }
+
+        /* Profile Specifics */
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 2px solid var(--neon-blue);
+            background: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 2px solid var(--neon-pink);
+        }
+    </style>
+</head>
+
+<body class="relative pt-20">
+
+    <!-- Background Elements -->
+    <div class="cyber-grid"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="fixed top-0 w-full glass-panel z-50 px-6 py-4 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <!-- Logo -->
+            <a href="#home" class="flex items-center gap-2 group smooth-scroll-link">
+                <i class="fas fa-brain text-3xl text-pink-500 group-hover:animate-pulse"></i>
+                <div class="text-2xl font-bold tracking-widest text-white brand-font">
+                    QUIZ <span class="text-blue-400">MANIA</span>
+                </div>
+            </a>
+
+            <!-- Nav Links (Desktop) -->
+            <div class="hidden md:flex items-center gap-8 text-sm font-bold tracking-widest">
+                {% if user.is_authenticated %}
+                <span class="text-blue-300"><i class="fas fa-id-badge mr-2"></i>{{ user.username }}</span>
+                <a href="#how-it-works"
+                    class="text-gray-300 hover:text-blue-400 transition duration-300 smooth-scroll-link uppercase">How
+                    It Works</a>
+                <a href="{% url 'logout' %}"
+                    class="border border-red-500 px-4 py-1 text-red-400 hover:bg-red-500/20 rounded text-xs flex items-center">LOGOUT</a>
+                {% else %}
+                <a href="#home"
+                    class="text-gray-300 hover:text-blue-400 transition duration-300 smooth-scroll-link">HOME</a>
+                <a href="#features"
+                    class="text-gray-300 hover:text-blue-400 transition duration-300 smooth-scroll-link">FEATURES</a>
+                <a href="#how-it-works"
+                    class="text-gray-300 hover:text-blue-400 transition duration-300 smooth-scroll-link">HOW IT
+                    WORKS</a>
+
+                <a href="{% url 'login' %}" class="text-blue-400 hover:text-blue-300 font-bold transition">LOGIN</a>
+                <a href="{% url 'register' %}"
+                    class="btn-cyber btn-cyber-pink px-6 py-2 hover:bg-pink-600/40 transition text-xs">REGISTER</a>
+                {% endif %}
+            </div>
+            <div class="nav-scanline"></div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="w-full">
+
+        {% if user.is_authenticated %}
+        <!-- AUTHENTICATED DASHBOARD VIEW -->
+        <section id="dashboard" class="min-h-screen py-10 px-6 max-w-7xl mx-auto">
+
+            <!-- Dashboard Grid -->
+            <div class="grid lg:grid-cols-4 gap-8">
+
+                <!-- LEFT SIDEBAR: PROFILE CARD -->
+                <div class="lg:col-span-1">
+                    <div class="glass-panel p-6 rounded-xl sticky top-24 text-center">
+                        <div class="profile-avatar mx-auto mb-4">
+                            <i class="fas fa-user-astronaut text-4xl text-gray-300"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white mb-1">{{ user.username }}</h2>
+                        <p class="text-pink-400 text-xs tracking-widest uppercase mb-6">Quiz Master</p>
+
+                        <div class="stat-card p-4 rounded mb-4 text-left">
+                            <p class="text-[10px] text-gray-400 uppercase">Total Quizzes</p>
+                            <p class="text-2xl font-bold text-white">{{ quiz_count }}</p>
+                        </div>
+                        <div class="stat-card p-4 rounded mb-4 text-left border-l-purple-500">
+                            <p class="text-[10px] text-gray-400 uppercase">Status</p>
+                            <p class="text-sm font-bold text-green-400 flex items-center gap-2">
+                                <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span> ONLINE
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- RIGHT MAIN CONTENT -->
+                <div class="lg:col-span-3 space-y-8">
+
+                    <!-- 1. COMMAND CENTER ACTIONS -->
+                    <div class="glass-panel p-8 rounded-xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                            <i class="fas fa-satellite-dish text-9xl"></i>
+                        </div>
+                        <h3 class="text-xl font-orbitron mb-6 flex items-center gap-3 text-blue-300">
+                            <i class="fas fa-terminal"></i> COMMAND CENTER
+                        </h3>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <!-- AI Mode -->
+                            <a href="{% url 'ai_quiz_generator' %}" class="group relative block w-full">
+                                <div
+                                    class="absolute inset-0 bg-purple-500 blur-xl opacity-20 group-hover:opacity-40 transition duration-500">
+                                </div>
+                                <button
+                                    class="btn-cyber w-full h-24 text-lg relative z-10 bg-black/40 group-hover:bg-black/60 transition flex items-center justify-center gap-4">
+                                    <i class="fas fa-robot text-3xl text-purple-400"></i>
+                                    <div class="text-left leading-tight">
+                                        <span class="block text-xs text-purple-300 tracking-widest">SMART BUILD</span>
+                                        <span class="block">AI GENERATOR</span>
+                                    </div>
+                                </button>
+                            </a>
+                            <!-- Manual Mode -->
+                            <a href="{% url 'start_session' %}" class="group relative block w-full">
+                                <div
+                                    class="absolute inset-0 bg-blue-500 blur-xl opacity-20 group-hover:opacity-40 transition duration-500">
+                                </div>
+                                <button
+                                    class="btn-cyber w-full h-24 text-lg relative z-10 bg-black/40 group-hover:bg-black/60 transition flex items-center justify-center gap-4">
+                                    <i class="fas fa-plus-circle text-3xl text-blue-400"></i>
+                                    <div class="text-left leading-tight">
+                                        <span class="block text-xs text-blue-300 tracking-widest">CUSTOM BUILD</span>
+                                        <span class="block">MANUAL ADDER</span>
+                                    </div>
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 2. QUIZ LIST -->
+                    <div>
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-2xl font-orbitron flex items-center gap-3">
+                                <i class="fas fa-layer-group text-pink-500"></i> ACTIVE MISSION LOG
+                            </h3>
+                            <span
+                                class="text-xs text-gray-500 bg-gray-900 px-3 py-1 rounded border border-gray-700">Displaying
+                                {{ quiz_count }} Quizzes</span>
+                        </div>
+
+                        {% if quizzes %}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            {% for quiz in quizzes %}
+                            <div
+                                class="glass-card rounded-lg p-5 flex flex-col justify-between group hover:bg-white/5 transition border border-gray-700/50 hover:border-blue-500 h-full relative overflow-hidden">
+                                <!-- Decoration -->
+                                <div
+                                    class="absolute -right-4 -top-4 w-16 h-16 bg-blue-500/10 rounded-full blur-xl group-hover:bg-blue-500/20 transition">
+                                </div>
+
+                                <!-- Delete Button (Visible on Hover) -->
+                                <form action="{% url 'delete_quiz' quiz_code=quiz.code %}" method="POST"
+                                    class="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition duration-300"
+                                    onsubmit="return confirm('DELETE MISSION? This will permanently erase the quiz and all its history.');">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                        class="text-red-500 hover:bg-red-500/10 w-8 h-8 rounded-full flex items-center justify-center transition">
+                                        <i class="fas fa-trash-alt text-xs"></i>
+                                    </button>
+                                </form>
+
+                                <div class="mb-5 relative z-10">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <span
+                                            class="bg-blue-900/40 text-blue-300 text-[10px] px-2 py-0.5 rounded border border-blue-500/30 font-mono tracking-wider">CODE:
+                                            {{ quiz.code }}</span>
+                                    </div>
+                                    <h4 class="text-lg font-bold font-orbitron text-white leading-tight truncate pr-2">
+                                        {{ quiz.title }}</h4>
+                                    <p class="text-xs text-gray-400 mt-1 flex items-center gap-2">
+                                        <i class="fas fa-question-circle text-[10px]"></i> {{ quiz.questions.count }}
+                                        Questions
+                                    </p>
+                                </div>
+
+                                <div class="flex gap-2 mt-auto relative z-10">
+                                    <a href="{% url 'quiz_master_dashboard' quiz_code=quiz.code %}"
+                                        class="flex-1 py-2 rounded text-center text-xs font-bold border border-blue-500/40 text-blue-400 hover:bg-blue-500 hover:text-black transition">
+                                        <i class="fas fa-gamepad mr-1"></i> CONTROL
+                                    </a>
+                                    <a href="{% url 'quiz_history' quiz_code=quiz.code %}"
+                                        class="flex-1 py-2 rounded text-center text-xs font-bold border border-pink-500/40 text-pink-400 hover:bg-pink-500 hover:text-white transition">
+                                        <i class="fas fa-history mr-1"></i> HISTORY
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="glass-panel rounded-xl p-12 text-center border-dashed border-gray-700">
+                            <i class="fas fa-ghost text-4xl text-gray-600 mb-4 animate-float"></i>
+                            <h4 class="text-xl font-bold text-gray-400 mb-2">No Active Missions</h4>
+                            <p class="text-sm text-gray-500 mb-6">Your log is empty. Use the Command Center to
+                                initialize a new quiz.</p>
+                            <a href="{% url 'ai_quiz_generator' %}"
+                                class="text-blue-400 hover:text-white underline text-sm">Deploy AI Generator</a>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        {% else %}
+        <!-- GUEST / LANDING PAGE VIEW (KEEPING ORIGINAL LANDING DESIGN) -->
+        <section id="home" class="min-h-[90vh] flex flex-col items-center justify-center px-4 text-center relative">
+            <div class="glitch-wrapper mb-6 mt-10">
+                <h1 class="glitch md:text-8xl text-5xl font-black tracking-tighter" data-text="QUIZ MANIA">QUIZ MANIA
+                </h1>
+            </div>
+            <p
+                class="text-xl md:text-2xl text-blue-200 tracking-widest font-light opacity-80 neon-text-blue uppercase mb-12 max-w-2xl">
+                <span class="inline-block animate-pulse text-pink-500">▐</span> The Gamified Feedback Engine for Modern
+                Classrooms
+            </p>
+
+            <div class="w-full max-w-3xl glass-panel p-8 rounded-xl relative z-20">
+                <div id="hero-guest">
+                    <div class="flex flex-col md:flex-row gap-4 justify-center">
+                        <a href="{% url 'login' %}" class="btn-cyber w-full md:w-48 h-14 text-lg">TEACHER LOGIN</a>
+                        <a href="{% url 'register' %}" class="btn-cyber btn-cyber-pink w-full md:w-48 h-14 text-lg">GET
+                            STARTED</a>
+                    </div>
+                    <p class="mt-4 text-xs text-gray-400 tracking-wider">NO CREDIT CARD REQUIRED // FREE FOR EDUCATORS
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- REDESIGNED FEATURES SECTION -->
+        <section id="features" class="py-20 px-6 max-w-7xl mx-auto">
+
+            <!-- Section Separator -->
+            <div class="flex justify-center mb-20 opacity-50">
+                <i class="fas fa-chevron-down text-4xl text-blue-500 animate-bounce"></i>
+            </div>
+
+            <!-- SYSTEM CAPABILITIES HEADER -->
+            <div class="mb-16">
+                <div class="flex items-center gap-4 mb-2">
+                    <div class="h-1 w-12 bg-pink-500"></div>
+                    <h2 class="text-3xl md:text-5xl font-bold font-orbitron uppercase tracking-wide">SYSTEM CAPABILITIES
+                    </h2>
+                </div>
+            </div>
+
+            <!-- CAPABILITIES GRID -->
+            <div class="grid md:grid-cols-3 gap-8 mb-32">
+                <!-- Card 1 -->
+                <div
+                    class="glass-card p-8 rounded-xl relative overflow-hidden group min-h-[300px] flex flex-col justify-end">
+                    <!-- BG Icon -->
+                    <i
+                        class="fas fa-gamepad absolute top-4 right-4 text-9xl opacity-5 group-hover:opacity-10 transition duration-500 text-gray-500"></i>
+
+                    <div class="relative z-10">
+                        <i class="fas fa-rocket text-4xl text-blue-400 mb-6 block"></i>
+                        <h3 class="text-xl font-bold font-orbitron mb-4">Gamified Engagement</h3>
+                        <p class="text-sm text-gray-400 leading-relaxed">
+                            Replace boring surveys with high-energy quizzes. Keep students awake and competing for the
+                            leaderboard top spot.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div
+                    class="glass-card p-8 rounded-xl relative overflow-hidden group min-h-[300px] flex flex-col justify-end">
+                    <!-- BG Icon -->
+                    <i
+                        class="fas fa-chart-area absolute top-4 right-4 text-9xl opacity-5 group-hover:opacity-10 transition duration-500 text-gray-500"></i>
+
+                    <div class="relative z-10">
+                        <i class="fas fa-bolt text-4xl text-pink-500 mb-6 block"></i>
+                        <h3 class="text-xl font-bold font-orbitron mb-4">Real-Time Analytics</h3>
+                        <p class="text-sm text-gray-400 leading-relaxed">
+                            Watch data flow in as it happens. Identify knowledge gaps instantly with our live heatmaps
+                            and performance graphs.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div
+                    class="glass-card p-8 rounded-xl relative overflow-hidden group min-h-[300px] flex flex-col justify-end">
+                    <!-- BG Icon -->
+                    <i
+                        class="fas fa-mobile-alt absolute top-4 right-4 text-9xl opacity-5 group-hover:opacity-10 transition duration-500 text-gray-500"></i>
+
+                    <div class="relative z-10">
+                        <i class="fas fa-wifi text-4xl text-purple-500 mb-6 block"></i>
+                        <h3 class="text-xl font-bold font-orbitron mb-4">Zero Friction Access</h3>
+                        <p class="text-sm text-gray-400 leading-relaxed">
+                            No apps to install. Students join via QR code or link on any device. 100% browser-based
+                            execution.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OPERATION PROTOCOL SECTION -->
+            <div id="how-it-works" class="text-center mb-16 pt-20">
+                <h2 class="text-3xl md:text-5xl font-bold font-orbitron uppercase tracking-wide mb-4">OPERATION PROTOCOL
+                </h2>
+                <p class="text-gray-400 text-sm">Deploy your quiz in 3 simple steps</p>
+            </div>
+
+            <!-- STEPS VISUALIZATION -->
+            <div class="relative max-w-4xl mx-auto">
+                <!-- Connecting Line (Desktop Only) -->
+                <div
+                    class="hidden md:block absolute top-[60px] left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-blue-500 to-transparent z-0">
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-12 relative z-10">
+                    <!-- Step 1 -->
+                    <div class="text-center group">
+                        <div
+                            class="w-32 h-32 rounded-full border-2 border-blue-500 bg-[#050510] mx-auto mb-8 flex items-center justify-center relative shadow-[0_0_20px_rgba(59,130,246,0.3)] group-hover:shadow-[0_0_40px_rgba(59,130,246,0.6)] transition duration-500">
+                            <div
+                                class="w-[90%] h-[90%] rounded-full border border-blue-500/30 flex items-center justify-center">
+                                <span class="text-4xl font-black font-orbitron text-white">01</span>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold font-orbitron text-blue-400 mb-2 uppercase">INITIALIZE</h3>
+                        <p class="text-xs text-gray-400 px-6">Create your quiz or choose from our template library.</p>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="text-center group">
+                        <div
+                            class="w-32 h-32 rounded-full border-2 border-pink-500 bg-[#050510] mx-auto mb-8 flex items-center justify-center relative shadow-[0_0_20px_rgba(236,72,153,0.3)] group-hover:shadow-[0_0_40px_rgba(236,72,153,0.6)] transition duration-500">
+                            <div
+                                class="w-[90%] h-[90%] rounded-full border border-pink-500/30 flex items-center justify-center">
+                                <span class="text-4xl font-black font-orbitron text-white">02</span>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold font-orbitron text-pink-500 mb-2 uppercase">DEPLOY</h3>
+                        <p class="text-xs text-gray-400 px-6">Project the Join Code on screen. Students enter the arena.
+                        </p>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="text-center group">
+                        <div
+                            class="w-32 h-32 rounded-full border-2 border-purple-500 bg-[#050510] mx-auto mb-8 flex items-center justify-center relative shadow-[0_0_20px_rgba(168,85,247,0.3)] group-hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] transition duration-500">
+                            <div
+                                class="w-[90%] h-[90%] rounded-full border border-purple-500/30 flex items-center justify-center">
+                                <span class="text-4xl font-black font-orbitron text-white">03</span>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold font-orbitron text-purple-400 mb-2 uppercase">ANALYZE</h3>
+                        <p class="text-xs text-gray-400 px-6">Receive instant feedback and export reports for grading.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+        {% endif %}
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-blue-900/30 bg-black/40 py-10 mt-10 text-center">
+        <p class="text-gray-500 text-xs tracking-wider">QUIZ MANIA © 2024</p>
+    </footer>
+
+    <script>
+        // Smooth Scroll for specific links
+        document.querySelectorAll('.smooth-scroll-link').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+    </script>
+
+</body>
+
+</html>

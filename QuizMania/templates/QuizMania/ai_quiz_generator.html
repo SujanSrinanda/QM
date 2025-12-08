@@ -1,0 +1,578 @@
+{% extends 'QuizMania/base.html' %}
+
+{% block title %}AI Assistant - Quiz Mania{% endblock %}
+
+{% block content %}
+
+<!-- 
+        NEON THEME STYLES 
+    -->
+<link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap"
+    rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    /* --- THEME VARIABLES --- */
+    :root {
+        --neon-blue: #00f3ff;
+        --neon-pink: #ff00ff;
+        --neon-green: #00ff9d;
+        --dark-bg: #050510;
+        --glass-bg: rgba(10, 10, 30, 0.7);
+        --chat-user-bg: rgba(0, 243, 255, 0.1);
+        --chat-ai-bg: rgba(20, 20, 40, 0.6);
+    }
+
+    /* FORCE DARK BACKGROUND */
+    html,
+    body {
+        background-color: var(--dark-bg) !important;
+        color: white !important;
+        font-family: 'Rajdhani', sans-serif;
+        min-height: 100vh;
+        margin: 0;
+        overflow-x: hidden;
+    }
+
+    /* AGGRESSIVE RESET */
+    body>div,
+    main,
+    section {
+        background-color: transparent !important;
+    }
+
+    /* --- ANIMATED BACKGROUND --- */
+    .cyber-grid-fixed {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 200vw;
+        height: 200vh;
+        background-color: var(--dark-bg);
+        background-image:
+            linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+        background-size: 50px 50px;
+        transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+        animation: grid-move 20s linear infinite;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    @keyframes grid-move {
+        0% {
+            transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px);
+        }
+
+        100% {
+            transform: perspective(500px) rotateX(60deg) translateY(50px) translateZ(-200px);
+        }
+    }
+
+    /* --- CHAT UTILITIES --- */
+    .glass-panel {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 243, 255, 0.2);
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Scrollbar for chat area */
+    .chat-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .chat-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .chat-scroll::-webkit-scrollbar-thumb {
+        background: #333;
+        border-radius: 3px;
+    }
+
+    .chat-scroll::-webkit-scrollbar-thumb:hover {
+        background: var(--neon-blue);
+    }
+
+    /* Typing Indicator Animation */
+    .typing-dot {
+        width: 6px;
+        height: 6px;
+        background: var(--neon-blue);
+        border-radius: 50%;
+        animation: typing 1.4s infinite ease-in-out both;
+        margin: 0 2px;
+    }
+
+    .typing-dot:nth-child(1) {
+        animation-delay: -0.32s;
+    }
+
+    .typing-dot:nth-child(2) {
+        animation-delay: -0.16s;
+    }
+
+    @keyframes typing {
+
+        0%,
+        80%,
+        100% {
+            transform: scale(0);
+        }
+
+        40% {
+            transform: scale(1);
+        }
+    }
+
+    /* --- CHAT BUBBLES --- */
+    .chat-bubble {
+        max-width: 85%;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        position: relative;
+        margin-bottom: 1.5rem;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    .ai-bubble {
+        background: var(--chat-ai-bg);
+        border-left: 3px solid var(--neon-pink);
+        align-self: flex-start;
+        border-top-left-radius: 0;
+    }
+
+    .user-bubble {
+        background: var(--chat-user-bg);
+        border-right: 3px solid var(--neon-blue);
+        align-self: flex-end;
+        text-align: right;
+        border-top-right-radius: 0;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* --- INPUT BAR --- */
+    .chat-input-container {
+        background: black;
+        border-top: 1px solid rgba(0, 243, 255, 0.3);
+        padding: 1.5rem 1rem;
+    }
+
+    /* Distinct Input Boxes like the reference image */
+    .chat-input-box {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+        color: white;
+        padding: 0.8rem 1rem;
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 1rem;
+        transition: 0.3s;
+    }
+
+    .chat-input-box:focus {
+        border-color: var(--neon-blue);
+        outline: none;
+        box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+    }
+
+    .qty-input {
+        width: 80px;
+        text-align: center;
+    }
+
+    /* --- OPTION CARD (Mini for Review) --- */
+    .option-card-mini {
+        padding: 0.5rem;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid #333;
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .option-card-mini:hover {
+        border-color: var(--neon-blue);
+    }
+
+    input:checked+label .option-card-mini {
+        background: rgba(0, 243, 255, 0.1);
+        border-color: var(--neon-blue);
+    }
+
+    /* --- BUTTONS --- */
+    .btn-icon {
+        color: var(--neon-blue);
+        padding: 0.5rem;
+        border-radius: 50%;
+        transition: 0.3s;
+        cursor: pointer;
+    }
+
+    .btn-icon:hover {
+        background: rgba(0, 243, 255, 0.1);
+        box-shadow: 0 0 10px var(--neon-blue);
+    }
+
+    .btn-send {
+        background: var(--neon-pink);
+        color: white;
+        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.3s;
+        box-shadow: 0 0 10px var(--neon-pink);
+    }
+
+    .btn-send:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 20px var(--neon-pink);
+    }
+</style>
+
+<!-- Background Animation -->
+<div class="cyber-grid-fixed"></div>
+
+<!-- Navigation Bar -->
+<nav class="fixed top-0 w-full glass-panel z-50 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <!-- Logo -->
+        <a href="/" class="flex items-center gap-2 group">
+            <i class="fas fa-brain text-3xl text-pink-500 group-hover:animate-pulse"></i>
+            <div class="text-2xl font-bold tracking-widest text-white" style="font-family: 'Orbitron', sans-serif;">
+                QUIZ <span class="text-blue-400">MANIA</span>
+            </div>
+        </a>
+
+        <!-- Nav Links -->
+        <div class="hidden md:flex items-center gap-8 text-sm font-bold tracking-widest">
+            {% if user.is_authenticated %}
+            <div class="flex gap-4 items-center">
+                <a href="{% url 'logout' %}"
+                    class="border border-red-500 px-4 py-1 text-red-400 hover:bg-red-500/20 rounded text-xs flex items-center transition">
+                    LOGOUT
+                </a>
+            </div>
+            {% else %}
+            <div class="flex gap-4 items-center">
+                <a href="{% url 'login' %}" class="text-blue-400 hover:text-blue-300">LOGIN</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="nav-scanline"></div>
+</nav>
+
+<!-- Main Content: Chat Interface -->
+<div class="min-h-screen w-full flex items-center justify-center px-4 pt-24 pb-4 relative z-10">
+
+    <!-- Chat Window -->
+    <div class="glass-panel w-full max-w-5xl h-[85vh] flex flex-col rounded-xl overflow-hidden relative">
+
+        <!-- Chat Header -->
+        <div class="bg-black/40 border-b border-gray-700 p-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-10 h-10 rounded-full bg-blue-900/50 border border-neon-blue flex items-center justify-center relative">
+                    <i class="fas fa-robot text-neon-blue"></i>
+                    <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-black">
+                    </div>
+                </div>
+                <div>
+                    <h2 class="font-orbitron text-lg text-white tracking-wide">AI ASSISTANT</h2>
+                    <p class="text-[10px] text-neon-green tracking-widest">ONLINE // READY FOR INPUT</p>
+                </div>
+            </div>
+            <div>
+                <button class="text-gray-500 hover:text-white transition"><i class="fas fa-ellipsis-v"></i></button>
+            </div>
+        </div>
+
+        <!-- Chat History Area -->
+        <div class="flex-1 overflow-y-auto p-6 chat-scroll flex flex-col gap-4" id="chat-history">
+
+            <!-- Initial AI Message -->
+            <div class="ai-bubble chat-bubble">
+                <div class="text-xs text-pink-500 font-bold mb-1">SYSTEM</div>
+                <p class="text-gray-200">
+                    Hello, Agent. I am ready to generate assessment modules. <br>
+                    Please upload a <strong>PDF, PNG, or JPG</strong> document to begin analysis.
+                </p>
+            </div>
+
+            <!-- If MCQs exist (Review Mode), show them as chat messages -->
+            {% if mcqs %}
+            <!-- User Previous Action (Simulated) -->
+            <div class="user-bubble chat-bubble">
+                <div class="text-xs text-neon-blue font-bold mb-1">YOU</div>
+                <p class="text-gray-200">
+                    <i class="fas fa-file-alt mr-2"></i> Document Uploaded.
+                    <span class="block text-xs text-gray-400 mt-1">Requesting {{ mcqs|length }} questions.</span>
+                </p>
+            </div>
+
+            <!-- AI Response -->
+            <div class="ai-bubble chat-bubble w-full">
+                <div class="text-xs text-pink-500 font-bold mb-1">SYSTEM</div>
+                <p class="text-gray-200 mb-4">
+                    Analysis complete. I have extracted {{ mcqs|length }} potential questions. Please review the data
+                    packet below before saving to the mainframe.
+                </p>
+
+                <!-- --- REVIEW FORM INSIDE CHAT --- -->
+                <form action="{% url 'ai_quiz_generator' %}" method="post"
+                    class="bg-black/30 p-4 rounded border border-blue-500/30">
+                    {% csrf_token %}
+                    <input type="hidden" name="num_questions" value="{{ mcqs|length }}">
+
+                    <!-- Quiz Title Input -->
+                    <div class="mb-6">
+                        <label class="text-xs text-neon-blue uppercase tracking-widest mb-1 block">Session Title</label>
+                        <input type="text" name="title" required placeholder="Enter Quiz Title..."
+                            class="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white focus:border-neon-blue focus:outline-none">
+                    </div>
+
+                    <!-- Questions List (Scrollable Mini) -->
+                    <div class="space-y-6 max-h-[400px] overflow-y-auto pr-2 chat-scroll">
+                        {% for mcq in mcqs %}
+                        <div class="p-3 border border-gray-700 rounded bg-gray-800/50">
+                            <div class="flex justify-between mb-2">
+                                <span class="text-neon-pink font-bold text-xs">Q{{ forloop.counter }}</span>
+                            </div>
+                            <p class="text-white text-sm font-bold mb-3">{{ mcq.question }}</p>
+                            <input type="hidden" name="question_text_{{ forloop.counter }}" value="{{ mcq.question }}">
+
+                            <!-- Options -->
+                            <div class="grid grid-cols-1 gap-2">
+                                {% for key, value in mcq.options.items %}
+                                <div class="relative">
+                                    <input type="radio" class="hidden peer"
+                                        name="correct_option_{{ forloop.parentloop.counter }}"
+                                        id="opt_{{ forloop.parentloop.counter }}_{{ key }}" value="{{ key }}">
+                                    <label for="opt_{{ forloop.parentloop.counter }}_{{ key }}" class="block w-full">
+                                        <div class="option-card-mini flex items-center">
+                                            <div
+                                                class="w-3 h-3 rounded-full border border-gray-500 mr-3 peer-checked:bg-neon-blue">
+                                            </div>
+                                            <span class="text-xs text-gray-300">{{ value }}</span>
+                                        </div>
+                                    </label>
+                                    <input type="hidden" name="option_{{ key }}_{{ forloop.parentloop.counter }}"
+                                        value="{{ value }}">
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="mt-2 text-xs text-green-400">
+                                Suggested Answer: {{ mcq.answer }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Save Action -->
+                    <div class="mt-4 text-right">
+                        <button type="submit"
+                            class="bg-neon-pink hover:bg-pink-600 text-white font-bold py-2 px-6 rounded shadow-[0_0_10px_#ff00ff] transition transform hover:scale-105">
+                            <i class="fas fa-save mr-2"></i> CONFIRM & SAVE
+                        </button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- --- INPUT AREA (Only show if not reviewing) --- -->
+        {% if not mcqs %}
+        <form action="{% url 'ai_quiz_generator' %}" method="POST" enctype="multipart/form-data"
+            class="chat-input-container p-4">
+            {% csrf_token %}
+
+            <!-- Attachment Preview Pill -->
+            <div id="file-preview"
+                class="hidden mb-2 px-3 py-1 bg-gray-800 rounded-full inline-flex items-center gap-2 border border-neon-blue w-fit">
+                <i class="fas fa-file-pdf text-neon-blue text-xs"></i>
+                <span id="file-name-text" class="text-xs text-white truncate max-w-[200px]">document.pdf</span>
+                <button type="button" onclick="clearFile()" class="text-gray-400 hover:text-red-500 ml-2"><i
+                        class="fas fa-times"></i></button>
+            </div>
+
+            <div class="flex items-center gap-3">
+
+                <!-- File Upload Trigger -->
+                <label for="file-upload" class="btn-icon" title="Attach Document">
+                    <i class="fas fa-paperclip text-xl"></i>
+                </label>
+                <input id="file-upload" name="document" type="file" class="hidden" accept=".pdf, .png, .jpg, .jpeg"
+                    onchange="handleFileSelect(this)">
+
+                <!-- Qty Input -->
+                <input type="number" name="num_questions" placeholder="10" value="10" class="chat-input-box qty-input">
+
+                <!-- Main Text Input -->
+                <input type="text" name="user_input" placeholder="Type a topic or instructions..."
+                    class="chat-input-box flex-1" autocomplete="off">
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn-send group">
+                    <i class="fas fa-paper-plane group-hover:translate-x-1 transition"></i>
+                </button>
+            </div>
+        </form>
+        {% endif %}
+
+    </div>
+</div>
+
+<script>
+    const form = document.querySelector('form.chat-input-container');
+
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const fileInput = document.getElementById('file-upload');
+            const textInput = document.querySelector('input[name="user_input"]');
+            const userText = textInput.value;
+            const file = fileInput.files[0];
+
+            if (!userText && !file) return;
+
+            // 1. Show User Bubble
+            appendUserMessage(userText, file ? file.name : null);
+
+            // 2. Prepare Data
+            const formData = new FormData(form);
+
+            // 3. Show Typing Indicator
+            showTypingIndicator();
+
+            // 4. Clear Inputs
+            textInput.value = '';
+            clearFile();
+
+            // 5. AJAX Request
+            fetch("{% url 'ai_quiz_generator' %}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    removeTypingIndicator();
+                    if (data.html) {
+                        appendAiMessage(data.html);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    removeTypingIndicator();
+                    appendAiMessage('<p class="text-red-500">Error processing request. Please try again.</p>');
+                });
+        });
+    }
+
+    function appendUserMessage(text, fileName) {
+        const chatHistory = document.getElementById('chat-history');
+        const bubble = document.createElement('div');
+        bubble.className = 'user-bubble chat-bubble';
+
+        let content = `<div class="text-xs text-neon-blue font-bold mb-1">YOU</div>`;
+
+        if (fileName) {
+            content += `
+            <p class="text-gray-200 mb-1">
+                <i class="fas fa-file-alt mr-2"></i> Document Uploaded
+                <span class="block text-xs text-gray-400 mt-1">${fileName}</span>
+            </p>`;
+        }
+
+        if (text) {
+            content += `<p class="text-gray-200">${text}</p>`;
+        }
+
+        bubble.innerHTML = content;
+        chatHistory.appendChild(bubble);
+        scrollToBottom();
+    }
+
+    function showTypingIndicator() {
+        const chatHistory = document.getElementById('chat-history');
+        const bubble = document.createElement('div');
+        bubble.className = 'ai-bubble chat-bubble w-fit typing-bubble';
+        bubble.id = 'typing-indicator';
+        bubble.innerHTML = `
+            <div class="text-xs text-pink-500 font-bold mb-1">SYSTEM</div>
+            <div class="flex items-center gap-1 h-6">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        `;
+        chatHistory.appendChild(bubble);
+        scrollToBottom();
+    }
+
+    function removeTypingIndicator() {
+        const indicator = document.getElementById('typing-indicator');
+        if (indicator) indicator.remove();
+    }
+
+    function appendAiMessage(html) {
+        const chatHistory = document.getElementById('chat-history');
+        // We can just append the partial HTML directly since it contains the wrapper div
+        // But the partial contains <div class="ai-bubble ..."> so we just insert it.
+        // Wait, element.innerHTML += html might break event listeners if we had any on previous elements (not expected here),
+        // but cleaner to insertAdjacentHTML.
+        chatHistory.insertAdjacentHTML('beforeend', html);
+        scrollToBottom();
+    }
+
+    function scrollToBottom() {
+        const chatHistory = document.getElementById('chat-history');
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+
+    function handleFileSelect(input) {
+        const preview = document.getElementById('file-preview');
+        const nameText = document.getElementById('file-name-text');
+
+        if (input.files && input.files[0]) {
+            preview.classList.remove('hidden');
+            nameText.textContent = input.files[0].name;
+        }
+    }
+
+    function clearFile() {
+        const input = document.getElementById('file-upload');
+        const preview = document.getElementById('file-preview');
+
+        input.value = '';
+        preview.classList.add('hidden');
+    }
+
+    // Initial Scroll
+    scrollToBottom();
+</script>
+
+{% endblock %}

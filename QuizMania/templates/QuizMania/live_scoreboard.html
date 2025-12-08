@@ -1,0 +1,362 @@
+{% extends 'QuizMania/base.html' %}
+
+{% block title %}Live Scoreboard - Quiz Mania{% endblock %}
+
+{% block content %}
+
+    <!-- 
+        NEON THEME STYLES 
+    -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- THEME VARIABLES --- */
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --neon-gold: #ffd700;
+            --neon-silver: #c0c0c0;
+            --neon-bronze: #cd7f32;
+            --dark-bg: #050510; 
+            --glass-bg: rgba(10, 10, 30, 0.6);
+        }
+
+        /* FORCE DARK BACKGROUND */
+        html, body {
+            background-color: var(--dark-bg) !important;
+            color: white !important;
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* AGGRESSIVE RESET */
+        body > div, main, section {
+            background-color: transparent !important;
+        }
+
+        /* --- ANIMATED BACKGROUND --- */
+        .cyber-grid-fixed {
+            position: fixed;
+            top: 0; left: 0; width: 200vw; height: 200vh;
+            background-color: var(--dark-bg); 
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+            animation: grid-move 20s linear infinite;
+            z-index: 0;
+            pointer-events: none;
+        }
+        @keyframes grid-move {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(50px) translateZ(-200px); }
+        }
+
+        /* --- UTILITIES --- */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .nav-scanline {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+            animation: scan-nav 4s linear infinite;
+        }
+        @keyframes scan-nav {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* --- SCOREBOARD LIST STYLES --- */
+        #live-scoreboard ol {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Base Rank Item */
+        .rank-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 20, 40, 0.6);
+            border-left: 4px solid var(--neon-blue);
+            border-bottom: 1px solid rgba(0, 243, 255, 0.1);
+            margin-bottom: 0.8rem;
+            padding: 1rem 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .rank-item:hover {
+            background: rgba(0, 243, 255, 0.1);
+            transform: translateX(10px);
+        }
+
+        /* Rank Number Badge */
+        .rank-badge {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            font-size: 1.2rem;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        /* Username Styling */
+        .player-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            flex-grow: 1;
+            letter-spacing: 1px;
+            color: white;
+        }
+
+        /* Score Styling */
+        .player-score {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            color: var(--neon-pink);
+            text-shadow: 0 0 5px var(--neon-pink);
+        }
+
+        /* --- TOP 3 STYLING --- */
+        /* 1st Place - Gold */
+        .rank-item.rank-1 {
+            border-left-color: var(--neon-gold);
+            background: linear-gradient(90deg, rgba(255, 215, 0, 0.15), transparent);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+        .rank-item.rank-1 .rank-badge {
+            color: var(--neon-gold);
+            border: 2px solid var(--neon-gold);
+            text-shadow: 0 0 10px var(--neon-gold);
+            background: rgba(0,0,0,0.5);
+        }
+        .rank-item.rank-1 .player-score { color: var(--neon-gold); text-shadow: 0 0 5px var(--neon-gold); }
+        .rank-item.rank-1::after {
+            content: '👑';
+            position: absolute;
+            right: 120px; /* Positioned before score */
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.4;
+            font-size: 1.5rem;
+        }
+
+        /* 2nd Place - Silver */
+        .rank-item.rank-2 {
+            border-left-color: var(--neon-silver);
+        }
+        .rank-item.rank-2 .rank-badge {
+            color: var(--neon-silver);
+            border: 2px solid var(--neon-silver);
+        }
+        .rank-item.rank-2 .player-score { color: var(--neon-silver); text-shadow: 0 0 5px var(--neon-silver); }
+
+        /* 3rd Place - Bronze */
+        .rank-item.rank-3 {
+            border-left-color: var(--neon-bronze);
+        }
+        .rank-item.rank-3 .rank-badge {
+            color: var(--neon-bronze);
+            border: 2px solid var(--neon-bronze);
+        }
+        .rank-item.rank-3 .player-score { color: var(--neon-bronze); text-shadow: 0 0 5px var(--neon-bronze); }
+
+        /* Cyber Buttons */
+        .btn-cyber {
+            position: relative;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: white;
+            background: transparent;
+            border: 1px solid var(--neon-blue);
+            overflow: hidden;
+            transition: 0.3s;
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            padding: 0.8rem 1.8rem;
+            cursor: pointer;
+        }
+        .btn-cyber:hover {
+            background: rgba(0, 243, 255, 0.1);
+            text-shadow: 0 0 10px var(--neon-blue);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+        }
+    </style>
+
+    <!-- Background Animation -->
+    <div class="cyber-grid-fixed"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="fixed top-0 w-full glass-panel z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <!-- Logo -->
+            <a href="/" class="flex items-center gap-2 group">
+                <i class="fas fa-brain text-3xl text-pink-500 group-hover:animate-pulse"></i>
+                <div class="text-2xl font-bold tracking-widest text-white brand-font">
+                    QUIZ <span class="text-blue-400">MANIA</span>
+                </div>
+            </a>
+
+            <!-- Nav Links -->
+            <div class="hidden md:flex items-center gap-8 text-sm font-bold tracking-widest">
+                {% if user.is_authenticated %}
+                <div class="flex gap-4 items-center">
+                    <a href="{% url 'logout' %}" class="border border-red-500 px-4 py-1 text-red-400 hover:bg-red-500/20 rounded text-xs flex items-center transition">
+                        LOGOUT
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="nav-scanline"></div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="min-h-screen w-full flex items-center justify-center px-4 pt-24 pb-10 relative z-10">
+        
+        <!-- Scoreboard Card -->
+        <div class="glass-panel w-full max-w-4xl p-8 md:p-10 rounded-xl relative">
+            
+            <!-- Header -->
+            <div class="text-center mb-10">
+                <h1 class="text-4xl md:text-5xl font-bold font-orbitron text-white tracking-wider neon-text-blue mb-2">
+                    LIVE SCOREBOARD
+                </h1>
+                <p class="text-sm text-gray-400 tracking-[0.3em] uppercase">
+                    Session: <span class="text-white font-bold">{{ quiz.title }}</span>
+                </p>
+            </div>
+
+            <!-- Leaderboard Container -->
+            <div class="bg-black/40 rounded-lg p-1 border border-gray-800 min-h-[300px]">
+                
+                <!-- Dynamic List -->
+                <div id="live-scoreboard" class="p-4">
+                    <div class="text-center text-gray-500 py-10 animate-pulse">
+                        Waiting for data uplink...
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer Info -->
+            <div class="mt-6 flex justify-between text-xs text-gray-500 font-mono">
+                <span><i class="fas fa-sync fa-spin mr-1"></i> AUTO-REFRESH: 5s</span>
+                <span>STATUS: LIVE</span>
+            </div>
+
+            <!-- Back Button -->
+            <div class="text-center border-t border-gray-700/50 pt-8 mt-6">
+                <a href="{% url 'quiz_master_dashboard' quiz_code=quiz.code %}" class="btn-cyber group">
+                    <i class="fas fa-chevron-left mr-2 group-hover:-translate-x-1 transition"></i> BACK TO DASHBOARD
+                </a>
+            </div>
+
+            <!-- Decorative Corner Markers -->
+            <div class="absolute top-0 left-0 w-3 h-3 border-t border-l border-blue-500"></div>
+            <div class="absolute top-0 right-0 w-3 h-3 border-t border-r border-blue-500"></div>
+            <div class="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-blue-500"></div>
+            <div class="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-blue-500"></div>
+
+        </div>
+    </div>
+
+    <script>
+        function getLiveScoreboard() {
+            // --- ENVIRONMENT SAFETY CHECK ---
+            const rawQuizCode = "{{ quiz.code }}";
+            const isPreview = rawQuizCode.includes("{{"); // Detect if running in preview (no Django)
+            const quizCode = isPreview ? "PREVIEW_CODE" : rawQuizCode;
+
+            // --- SIMULATION MODE (Preview Only) ---
+            if (isPreview) {
+                console.log("Environment: Preview Mode. Simulating API call...");
+                // Generate mock random scores to show the sorting/styling
+                const mockData = [
+                    { username: "NeonRider", score: Math.floor(Math.random() * 1000) + 2000 },
+                    { username: "CyberStudent", score: Math.floor(Math.random() * 1000) + 1500 },
+                    { username: "GlitchMaster", score: Math.floor(Math.random() * 1000) + 1000 },
+                    { username: "DataMiner", score: 850 },
+                    { username: "BitWise", score: 400 }
+                ];
+                // Sort mock data by score desc
+                mockData.sort((a, b) => b.score - a.score);
+                updateBoardUI(mockData);
+                return;
+            }
+
+            // --- REAL PRODUCTION FETCH ---
+            fetch(`/api/quiz/${quizCode}/live_scoreboard/`)
+                .then(response => response.json())
+                .then(data => {
+                    // Assuming API returns unsorted, let's sort just in case
+                    data.sort((a, b) => b.score - a.score);
+                    updateBoardUI(data);
+                })
+                .catch(err => console.error("Scoreboard fetch error:", err));
+        }
+
+        function updateBoardUI(data) {
+            const scoreboard = document.getElementById('live-scoreboard');
+            if (!scoreboard) return;
+
+            scoreboard.innerHTML = ''; // Clear loading state/old data
+            
+            if (data.length === 0) {
+                scoreboard.innerHTML = '<div class="text-center text-gray-500 py-10">No participants yet...</div>';
+                return;
+            }
+
+            const ol = document.createElement('ol');
+            
+            data.forEach((item, index) => {
+                const rank = index + 1;
+                const li = document.createElement('li');
+                
+                // Add class for styling specific ranks (rank-1, rank-2, etc)
+                li.className = `rank-item rank-${rank}`;
+                
+                li.innerHTML = `
+                    <div class="flex items-center w-full">
+                        <div class="rank-badge">${rank}</div>
+                        <div class="player-name text-white">${item.username}</div>
+                        <div class="player-score">${item.score}</div>
+                    </div>
+                `;
+                ol.appendChild(li);
+            });
+            
+            scoreboard.appendChild(ol);
+        }
+
+        // Update every 5 seconds
+        setInterval(getLiveScoreboard, 5000);
+        
+        // Initial load
+        getLiveScoreboard();
+    </script>
+
+{% endblock %}

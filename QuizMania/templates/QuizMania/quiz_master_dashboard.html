@@ -1,0 +1,327 @@
+{% extends 'QuizMania/base.html' %}
+
+{% block title %}Quiz Master Dashboard - Quiz Mania{% endblock %}
+
+{% block content %}
+
+<!-- 
+        NEON THEME STYLES 
+    -->
+<link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap"
+    rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    /* --- THEME VARIABLES --- */
+    :root {
+        --neon-blue: #00f3ff;
+        --neon-pink: #ff00ff;
+        --dark-bg: #050510;
+        --glass-bg: rgba(10, 10, 30, 0.6);
+    }
+
+    /* FORCE DARK BACKGROUND */
+    html,
+    body {
+        background-color: var(--dark-bg) !important;
+        color: white !important;
+        font-family: 'Rajdhani', sans-serif;
+        min-height: 100vh;
+        margin: 0;
+        overflow-x: hidden;
+    }
+
+    /* AGGRESSIVE RESET */
+    body>div,
+    main,
+    section {
+        background-color: transparent !important;
+    }
+
+    /* --- ANIMATED BACKGROUND --- */
+    .cyber-grid-fixed {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 200vw;
+        height: 200vh;
+        background-color: var(--dark-bg);
+        background-image:
+            linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+        background-size: 50px 50px;
+        transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+        animation: grid-move 20s linear infinite;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    @keyframes grid-move {
+        0% {
+            transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px);
+        }
+
+        100% {
+            transform: perspective(500px) rotateX(60deg) translateY(50px) translateZ(-200px);
+        }
+    }
+
+    /* --- UTILITIES --- */
+    .glass-panel {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 243, 255, 0.2);
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .neon-text-blue {
+        color: white;
+        text-shadow: 0 0 5px var(--neon-blue), 0 0 10px var(--neon-blue);
+    }
+
+    .font-orbitron {
+        font-family: 'Orbitron', sans-serif;
+    }
+
+    .nav-scanline {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+        animation: scan-nav 4s linear infinite;
+    }
+
+    @keyframes scan-nav {
+        0% {
+            transform: translateX(-100%);
+        }
+
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
+    /* --- DASHBOARD ELEMENTS --- */
+    .code-display {
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.2em;
+        background: rgba(0, 0, 0, 0.6);
+        border: 1px solid var(--neon-blue);
+        box-shadow: inset 0 0 20px rgba(0, 243, 255, 0.2);
+        text-shadow: 0 0 10px var(--neon-blue);
+        clip-path: polygon(5% 0, 100% 0, 100% 80%, 95% 100%, 0 100%, 0 20%);
+    }
+
+    .url-box {
+        background: rgba(0, 0, 0, 0.4);
+        border-bottom: 1px solid #333;
+        font-family: 'Courier New', monospace;
+        color: #00f3ff;
+    }
+
+    /* Cyber Buttons */
+    .btn-cyber {
+        position: relative;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: white;
+        background: transparent;
+        border: 1px solid var(--neon-blue);
+        overflow: hidden;
+        transition: 0.3s;
+        clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+        padding: 1rem 2rem;
+        cursor: pointer;
+    }
+
+    .btn-cyber:hover {
+        background: rgba(0, 243, 255, 0.1);
+        text-shadow: 0 0 10px var(--neon-blue);
+        box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+    }
+
+    .btn-cyber-pink {
+        border-color: var(--neon-pink);
+    }
+
+    .btn-cyber-pink:hover {
+        background: rgba(255, 0, 255, 0.1);
+        text-shadow: 0 0 10px var(--neon-pink);
+        box-shadow: 0 0 20px rgba(255, 0, 255, 0.4);
+    }
+</style>
+
+<!-- Background Animation -->
+<div class="cyber-grid-fixed"></div>
+
+<!-- Navigation Bar -->
+<nav class="fixed top-0 w-full glass-panel z-50 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <!-- Logo -->
+        <a href="/" class="flex items-center gap-2 group">
+            <i class="fas fa-brain text-3xl text-pink-500 group-hover:animate-pulse"></i>
+            <div class="text-2xl font-bold tracking-widest text-white" style="font-family: 'Orbitron', sans-serif;">
+                QUIZ <span class="text-blue-400">MANIA</span>
+            </div>
+        </a>
+
+        <!-- Nav Links -->
+        <div class="hidden md:flex items-center gap-8 text-sm font-bold tracking-widest">
+            {% if user.is_authenticated %}
+            <div class="flex gap-4 items-center">
+                <a href="{% url 'logout' %}"
+                    class="border border-red-500 px-4 py-1 text-red-400 hover:bg-red-500/20 rounded text-xs flex items-center transition">
+                    LOGOUT
+                </a>
+            </div>
+            {% else %}
+            <div class="flex gap-4 items-center">
+                <a href="{% url 'login' %}" class="text-blue-400 hover:text-blue-300">LOGIN</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <button class="md:hidden text-2xl text-blue-400">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+    <div class="nav-scanline"></div>
+</nav>
+
+<!-- Main Content -->
+<div class="min-h-screen w-full flex items-center justify-center px-4 pt-24 pb-10 relative z-10">
+
+    <!-- Dashboard Card -->
+    <div class="glass-panel w-full max-w-3xl p-8 md:p-12 rounded-xl relative">
+
+        <!-- Quiz Title Header -->
+        <div class="text-center mb-10">
+            <div
+                class="inline-block px-3 py-1 rounded border border-blue-500/30 bg-blue-900/20 text-blue-300 text-[10px] tracking-[0.3em] mb-4">
+                SESSION ACTIVE
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold font-orbitron text-white tracking-wider neon-text-blue">
+                {{ quiz.title }}
+            </h1>
+        </div>
+
+        <!-- Access Code Section (Hero) -->
+        <div class="flex flex-col items-center justify-center mb-10">
+            <p class="text-sm text-gray-400 tracking-[0.2em] mb-3 uppercase">Access Code</p>
+            <div class="code-display text-5xl md:text-7xl font-bold text-white px-8 py-4 relative group cursor-pointer"
+                onclick="copyToClipboard('{{ quiz.code }}', 'Code copied!')">
+                {{ quiz.code }}
+                <!-- Hover tooltip -->
+                <span
+                    class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-blue-400 opacity-0 group-hover:opacity-100 transition">
+                    CLICK TO COPY
+                </span>
+            </div>
+        </div>
+
+        <!-- Share URL Section -->
+        <div class="mb-12">
+            <p class="text-xs text-gray-400 mb-2 ml-1 uppercase tracking-wider">Direct Uplink</p>
+            <div class="relative group">
+                <div class="url-box w-full p-4 rounded text-sm md:text-base break-all pr-12 border border-gray-700">
+                    {{ request.scheme }}://{{ request.get_host }}{% url 'join_session' %}?code={{ quiz.code }}
+                </div>
+                <button onclick="copySessionLink()"
+                    class="absolute right-2 top-2 p-2 text-gray-400 hover:text-white hover:bg-blue-500/20 rounded transition">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Actions Footer -->
+        <div class="flex flex-col items-center pt-8 border-t border-gray-700/50">
+            <h2 class="text-xl font-orbitron text-white mb-6 flex items-center gap-2">
+                <i class="fas fa-users text-pink-500"></i> PARTICIPANT STATUS
+            </h2>
+
+            <a href="{% url 'live_participants' quiz_code=quiz.code %}"
+                class="btn-cyber btn-cyber-pink w-full md:w-2/3 group text-center decoration-0 mb-4">
+                <span class="flex items-center justify-center gap-3">
+                    <span class="relative flex h-3 w-3">
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-pink-500"></span>
+                    </span>
+                    MONITOR LIVE FEED
+                </span>
+            </a>
+
+            <form action="{% url 'end_session' quiz_code=quiz.code %}" method="POST"
+                onsubmit="return confirmEndSession()" class="w-full md:w-2/3">
+                {% csrf_token %}
+                <button type="submit"
+                    class="btn-cyber w-full group text-center decoration-0 border-red-500 hover:bg-red-500/10 text-red-400">
+                    <span class="flex items-center justify-center gap-3">
+                        <i class="fas fa-stop-circle"></i> END SESSION & REFRESH
+                    </span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Decorative Corner Markers -->
+        <div class="absolute top-0 left-0 w-3 h-3 border-t border-l border-blue-500"></div>
+        <div class="absolute top-0 right-0 w-3 h-3 border-t border-r border-blue-500"></div>
+        <div class="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-blue-500"></div>
+        <div class="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-blue-500"></div>
+
+    </div>
+</div>
+
+<!-- Toast Notification Script -->
+<script>
+    function copyToClipboard(text, message) {
+        navigator.clipboard.writeText(text).then(function () {
+            // Create a simple toast notification
+            const toast = document.createElement('div');
+            toast.innerText = message;
+            toast.style.position = 'fixed';
+            toast.style.bottom = '20px';
+            toast.style.left = '50%';
+            toast.style.transform = 'translateX(-50%)';
+            toast.style.backgroundColor = 'rgba(0, 243, 255, 0.9)';
+            toast.style.color = '#000';
+            toast.style.padding = '10px 20px';
+            toast.style.borderRadius = '4px';
+            toast.style.fontFamily = 'Orbitron, sans-serif';
+            toast.style.fontWeight = 'bold';
+            toast.style.zIndex = '1000';
+            toast.style.boxShadow = '0 0 15px var(--neon-blue)';
+
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => toast.remove(), 500);
+            }, 2000);
+        }, function (err) {
+            console.error('Async: Could not copy text: ', err);
+        });
+    }
+
+    function confirmEndSession() {
+        return confirm('Are you sure you want to END this session? All current participant data will be archived to history and the leaderboard will be cleared for new players.');
+    }
+
+    function copySessionLink() {
+        // Construct the URL in a cleaner way to avoid quote escaping hell in HTML attributes
+        const link = '{{ request.scheme }}://{{ request.get_host }}{% url "join_session" %}?code={{ quiz.code }}';
+        copyToClipboard(link, 'Link copied!');
+    }
+</script>
+
+{% endblock %}

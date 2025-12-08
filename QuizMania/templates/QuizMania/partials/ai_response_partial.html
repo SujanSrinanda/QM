@@ -1,0 +1,28 @@
+<div class="ai-bubble chat-bubble w-full">
+    <div class="text-xs text-pink-500 font-bold mb-1">SYSTEM</div>
+    <p class="text-gray-200 mb-4">
+        Analysis complete. I have extracted {{ mcqs|length }} potential questions. Please review the data packet below
+        before saving to the mainframe.
+    </p>
+
+    <!-- --- REVIEW FORM INSIDE CHAT --- -->
+    <form action="{% url 'review_generated_quiz' %}" method="post" class="mt-4">
+        {% csrf_token %}
+        <input type="hidden" name="num_questions" value="{{ mcqs|length }}">
+        <input type="hidden" name="title" value="Generated Quiz">
+
+        {% for mcq in mcqs %}
+        <input type="hidden" name="question_text_{{ forloop.counter }}" value="{{ mcq.question }}">
+        <input type="hidden" name="answer_{{ forloop.counter }}" value="{{ mcq.answer }}">
+        {% for key, value in mcq.options.items %}
+        <input type="hidden" name="option_{{ key }}_{{ forloop.parentloop.counter }}" value="{{ value }}">
+        {% endfor %}
+        {% endfor %}
+
+        <button type="submit"
+            class="bg-neon-pink hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-lg shadow-[0_0_15px_#ff00ff] transition transform hover:scale-105 flex items-center gap-2">
+            <i class="fas fa-edit"></i> REVIEW & EDIT QUESTIONS
+        </button>
+        <p class="text-xs text-gray-400 mt-2 italic">Opens in full editor mode.</p>
+    </form>
+</div>

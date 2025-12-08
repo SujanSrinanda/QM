@@ -1,0 +1,249 @@
+{% extends 'QuizMania/base.html' %}
+
+{% block title %}Review Answers - {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap"
+    rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    /* --- THEME VARIABLES --- */
+    :root {
+        --neon-blue: #00f3ff;
+        --neon-pink: #ff00ff;
+        --neon-green: #00ff9d;
+        --neon-red: #ff0055;
+        --dark-bg: #050510;
+        --glass-bg: rgba(10, 10, 30, 0.6);
+    }
+
+    html,
+    body {
+        background-color: var(--dark-bg) !important;
+        color: white !important;
+        font-family: 'Rajdhani', sans-serif;
+        min-height: 100vh;
+        margin: 0;
+        overflow-x: hidden;
+    }
+
+    body>div,
+    main,
+    section {
+        background-color: transparent !important;
+    }
+
+    .glass-panel {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 243, 255, 0.2);
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .question-card {
+        background: rgba(0, 20, 40, 0.5);
+        border: 1px solid #333;
+        transition: all 0.3s ease;
+    }
+
+    .option-row {
+        padding: 1rem 1.5rem;
+        border: 1px solid #333;
+        border-left: 4px solid #444;
+        margin-bottom: 0.8rem;
+        border-radius: 0 4px 4px 0;
+        transition: all 0.2s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(0, 20, 40, 0.3);
+    }
+
+    /* Correct Answer Style (Green) */
+    .option-correct {
+        border-color: var(--neon-green);
+        border-left-color: var(--neon-green);
+        background: rgba(0, 255, 157, 0.15);
+        box-shadow: 0 0 15px rgba(0, 255, 157, 0.2);
+    }
+
+    .option-correct .option-text {
+        color: var(--neon-green);
+        font-weight: bold;
+    }
+
+    /* Wrong Selection Style (Red) */
+    .option-wrong {
+        border-color: var(--neon-red);
+        border-left-color: var(--neon-red);
+        background: rgba(255, 0, 85, 0.15);
+        box-shadow: 0 0 15px rgba(255, 0, 85, 0.2);
+    }
+
+    .option-wrong .option-text {
+        color: var(--neon-red);
+    }
+
+    .status-icon {
+        font-size: 1.2rem;
+    }
+
+    .btn-cyber {
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 2px;
+        border: 1px solid var(--neon-blue);
+        color: var(--neon-blue);
+        padding: 0.8rem 2rem;
+        transition: 0.3s;
+    }
+
+    .btn-cyber:hover {
+        background: rgba(0, 243, 255, 0.1);
+        box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+    }
+
+    .cyber-grid-fixed {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 200vw;
+        height: 200vh;
+        background-color: var(--dark-bg);
+        background-image:
+            linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+        background-size: 50px 50px;
+        transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+        animation: grid-move 20s linear infinite;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    @keyframes grid-move {
+        0% {
+            transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px);
+        }
+
+        100% {
+            transform: perspective(500px) rotateX(60deg) translateY(50px) translateZ(-200px);
+        }
+    }
+</style>
+
+<div class="cyber-grid-fixed"></div>
+
+<div class="min-h-screen pt-24 pb-12 px-6 relative z-10 w-full flex justify-center">
+    <div class="max-w-4xl w-full">
+
+        <div class="mb-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <a href="{% url 'results_view' quiz.code %}"
+                    class="text-gray-400 hover:text-white text-sm mb-2 inline-block transition">
+                    <i class="fas fa-arrow-left"></i> BACK TO RESULTS
+                </a>
+                <h1 class="text-3xl md:text-5xl font-bold font-orbitron text-white tracking-wider">
+                    CHECK <span class="text-neon-blue">ANSWERS</span>
+                </h1>
+                <p class="text-blue-300 text-sm tracking-[0.3em] uppercase mt-1">Detailed Analysis</p>
+            </div>
+            <div class="glass-panel px-6 py-3 rounded-lg border-l-4 border-neon-blue">
+                <span class="text-xs font-bold tracking-widest text-blue-300 block mb-1">YOUR SCORE</span>
+                <div class="text-4xl font-bold font-orbitron text-white text-center">{{ score }} XP</div>
+            </div>
+        </div>
+
+        <div class="space-y-8">
+            {% for item in review_data %}
+            <div class="glass-panel p-6 md:p-8 rounded-xl question-card animate-fade-in relative overflow-hidden">
+                <!-- Decorative Top Border Gradient -->
+                <div
+                    class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500/20 to-transparent">
+                </div>
+
+                <div class="flex justify-between items-start mb-6">
+                    <h3 class="text-xl md:text-2xl font-bold text-white leading-relaxed flex-1">
+                        <span class="text-blue-500 mr-2 font-mono text-lg">Q{{ forloop.counter }}.</span>
+                        <!-- Question Text Removed As Requested -->
+                    </h3>
+                    <div class="ml-4 flex-shrink-0">
+                        {% if item.selected_choice and item.selected_choice.is_correct %}
+                        <span
+                            class="px-3 py-1 rounded border border-neon-green text-neon-green bg-green-900/20 text-xs font-bold tracking-wider">
+                            CORRECT
+                        </span>
+                        {% elif not item.selected_choice %}
+                        <span
+                            class="px-3 py-1 rounded border border-gray-500 text-gray-400 bg-gray-900/20 text-xs font-bold tracking-wider">
+                            SKIPPED
+                        </span>
+                        {% else %}
+                        <span
+                            class="px-3 py-1 rounded border border-neon-red text-neon-red bg-red-900/20 text-xs font-bold tracking-wider">
+                            WRONG
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid gap-3">
+                    {% for choice in item.choices %}
+                    <div class="option-row
+                        {% if choice.is_correct %}
+                            option-correct
+                        {% elif item.selected_choice == choice and not choice.is_correct %}
+                            option-wrong
+                        {% endif %}
+                    ">
+                        <div class="flex items-center gap-4">
+                            <!-- Indicator Circle -->
+                            <div class="w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0
+                                {% if choice.is_correct %}
+                                    border-neon-green bg-neon-green
+                                {% elif item.selected_choice == choice and not choice.is_correct %}
+                                    border-neon-red bg-neon-red
+                                {% else %}
+                                    border-gray-500
+                                {% endif %}
+                            ">
+                                {% if choice.is_correct or item.selected_choice == choice %}
+                                <!-- Inner dot or leaving solid -->
+                                {% endif %}
+                            </div>
+
+                            <span class="option-text text-lg font-medium text-gray-300">
+                                {{ choice.text }}
+                            </span>
+                        </div>
+
+                        <div class="status-icon">
+                            {% if choice.is_correct %}
+                            <i class="fas fa-check text-neon-green"></i>
+                            {% elif item.selected_choice == choice and not choice.is_correct %}
+                            <i class="fas fa-times text-neon-red"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% if item.question.explanation %}
+                <div class="mt-6 p-5 rounded bg-blue-900/10 border border-blue-500/20 text-sm text-gray-300 relative">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-blue-500/50"></div>
+                    <span class="text-blue-400 font-bold tracking-widest text-xs block mb-2 uppercase">
+                        <i class="fas fa-info-circle mr-1"></i> Explanation
+                    </span>
+                    {{ item.question.explanation }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-12 text-center pb-8 border-t border-gray-800 pt-8">
+            <p class="text-gray-500 text-sm tracking-widest">END OF REPORT</p>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

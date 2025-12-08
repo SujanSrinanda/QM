@@ -1,0 +1,338 @@
+{% extends 'QuizMania/base.html' %}
+
+{% block title %}Live Participants - Quiz Mania{% endblock %}
+
+{% block content %}
+
+<!-- 
+        NEON THEME STYLES 
+    -->
+<link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap"
+    rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    /* --- THEME VARIABLES --- */
+    :root {
+        --neon-blue: #00f3ff;
+        --neon-pink: #ff00ff;
+        --dark-bg: #050510;
+        --glass-bg: rgba(10, 10, 30, 0.6);
+    }
+
+    /* FORCE DARK BACKGROUND */
+    html,
+    body {
+        background-color: var(--dark-bg) !important;
+        color: white !important;
+        font-family: 'Rajdhani', sans-serif;
+        min-height: 100vh;
+        margin: 0;
+        overflow-x: hidden;
+    }
+
+    /* AGGRESSIVE RESET */
+    body>div,
+    main,
+    section {
+        background-color: transparent !important;
+    }
+
+    /* --- ANIMATED BACKGROUND --- */
+    .cyber-grid-fixed {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 200vw;
+        height: 200vh;
+        background-color: var(--dark-bg);
+        background-image:
+            linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+        background-size: 50px 50px;
+        transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+        animation: grid-move 20s linear infinite;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    @keyframes grid-move {
+        0% {
+            transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px);
+        }
+
+        100% {
+            transform: perspective(500px) rotateX(60deg) translateY(50px) translateZ(-200px);
+        }
+    }
+
+    /* --- UTILITIES --- */
+    .glass-panel {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 243, 255, 0.2);
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-scanline {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+        animation: scan-nav 4s linear infinite;
+    }
+
+    @keyframes scan-nav {
+        0% {
+            transform: translateX(-100%);
+        }
+
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
+    /* --- PARTICIPANT GRID STYLES --- */
+    #participant-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+        max-height: 400px;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+
+    /* Custom scrollbar for the list */
+    #participant-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    #participant-list::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.3);
+    }
+
+    #participant-list::-webkit-scrollbar-thumb {
+        background: var(--neon-blue);
+        border-radius: 3px;
+    }
+
+    /* The box created by JS */
+    .participant-box {
+        background: rgba(0, 243, 255, 0.05);
+        border: 1px solid var(--neon-blue);
+        color: white;
+        padding: 10px;
+        text-align: center;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 0.9rem;
+        border-radius: 4px;
+        box-shadow: 0 0 10px rgba(0, 243, 255, 0.1);
+        animation: fadeIn 0.5s ease-out;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    /* Add a little icon via CSS pseudo-element for flair */
+    .participant-box::before {
+        content: '\f007';
+        /* FontAwesome User Icon */
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        color: var(--neon-pink);
+        font-size: 0.8em;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* --- CYBER BUTTON --- */
+    .btn-cyber-pink {
+        position: relative;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: white;
+        background: transparent;
+        border: 1px solid var(--neon-pink);
+        overflow: hidden;
+        transition: 0.3s;
+        padding: 1rem 2rem;
+        clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+    }
+
+    .btn-cyber-pink:hover {
+        background: rgba(255, 0, 255, 0.1);
+        text-shadow: 0 0 10px var(--neon-pink);
+        box-shadow: 0 0 20px rgba(255, 0, 255, 0.4);
+    }
+</style>
+
+<!-- Background Animation -->
+<div class="cyber-grid-fixed"></div>
+
+<!-- Navigation Bar -->
+<nav class="fixed top-0 w-full glass-panel z-50 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <a href="/" class="flex items-center gap-2 group">
+            <i class="fas fa-brain text-3xl text-pink-500 group-hover:animate-pulse"></i>
+            <div class="text-2xl font-bold tracking-widest text-white" style="font-family: 'Orbitron', sans-serif;">
+                QUIZ <span class="text-blue-400">MANIA</span>
+            </div>
+        </a>
+        <div class="hidden md:flex items-center gap-8 text-sm font-bold tracking-widest">
+            {% if user.is_authenticated %}
+            <div class="flex gap-4 items-center">
+                <a href="{% url 'logout' %}"
+                    class="border border-red-500 px-4 py-1 text-red-400 hover:bg-red-500/20 rounded text-xs flex items-center transition">
+                    LOGOUT
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="nav-scanline"></div>
+</nav>
+
+<!-- Main Content -->
+<div class="min-h-screen w-full flex items-center justify-center px-4 pt-24 pb-10 relative z-10">
+
+    <!-- Live Monitor Card -->
+    <div class="glass-panel w-full max-w-4xl p-8 md:p-10 rounded-xl relative">
+
+        <!-- Header & Counter Row -->
+        <div
+            class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6 border-b border-gray-700/50 pb-6">
+            <!-- Quiz Title -->
+            <div class="text-center md:text-left">
+                <p class="text-xs text-blue-400 tracking-[0.3em] mb-1">ACTIVE SESSION</p>
+                <h1 class="text-2xl md:text-3xl font-bold font-orbitron text-white tracking-wider">
+                    {{ quiz.title }}
+                </h1>
+            </div>
+
+            <!-- Digital Counter -->
+            <div class="flex flex-col items-center">
+                <span class="text-xs text-pink-400 tracking-wider uppercase mb-1">Online Users</span>
+                <div
+                    class="bg-black/40 border border-pink-500/50 px-6 py-2 rounded text-4xl font-mono text-pink-500 shadow-[0_0_15px_rgba(255,0,255,0.3)]">
+                    <span id="live-count" class="animate-pulse">{{ quiz_takers.count }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Participant Grid Area -->
+        <div class="mb-10">
+            <h2 class="text-sm text-gray-400 mb-4 flex items-center gap-2">
+                <i class="fas fa-signal text-green-400"></i> INCOMING CONNECTIONS...
+            </h2>
+
+            <!-- The Grid Container -->
+            <div id="participant-list" class="bg-black/20 p-4 rounded border border-blue-500/20 min-h-[200px]">
+                <!-- JS will populate .participant-box divs here -->
+            </div>
+        </div>
+
+        <!-- Actions Footer -->
+        <div class="flex justify-center border-t border-gray-700/50 pt-8">
+            <a href="{% url 'live_scoreboard_view' quiz_code=quiz.code %}" class="btn-cyber-pink group">
+                <span class="flex items-center gap-2">
+                    <i class="fas fa-trophy text-yellow-400 group-hover:animate-bounce"></i>
+                    VIEW LIVE SCOREBOARD
+                </span>
+            </a>
+        </div>
+
+        <!-- Decorative Corner Markers -->
+        <div class="absolute top-0 left-0 w-3 h-3 border-t border-l border-blue-500"></div>
+        <div class="absolute top-0 right-0 w-3 h-3 border-t border-r border-blue-500"></div>
+        <div class="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-blue-500"></div>
+        <div class="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-blue-500"></div>
+
+    </div>
+</div>
+
+<script>
+    function getLiveParticipants() {
+        // Get the raw template string
+        const rawQuizCode = "{{ quiz.code }}";
+
+        // DETECT ENVIRONMENT:
+        // If rawQuizCode still contains '{{', it means Django hasn't rendered it (Preview Mode).
+        const isPreview = rawQuizCode.includes("{{");
+
+        // Fallback quiz code for preview mode to prevent URL errors
+        const quizCode = isPreview ? "PREVIEW_CODE" : rawQuizCode;
+
+        // --- SIMULATION MODE (For Static Preview) ---
+        if (isPreview) {
+            console.log("Environment: Preview Mode. Simulating API call...");
+            // Mock Data for UI testing
+            const mockData = [
+                { username: "CyberStudent_01" },
+                { username: "NeonRider" },
+                { username: "GlitchMaster" },
+                { username: "DataMiner" }
+            ];
+            updateUI(mockData);
+            return; // Stop here, don't attempt real fetch in preview
+        }
+
+        // --- PRODUCTION MODE (Real API Call) ---
+        fetch(`/api/quiz/${quizCode}/live_participants_list/`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                updateUI(data);
+            })
+            .catch(error => console.error('Error fetching participants:', error));
+    }
+
+    // Helper function to update the HTML
+    function updateUI(data) {
+        const participantList = document.getElementById('participant-list');
+        if (!participantList) return;
+
+        participantList.innerHTML = '';
+
+        data.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'participant-box'; // Styling defined in CSS
+            div.innerText = item.username;
+            participantList.appendChild(div);
+        });
+
+        const countEl = document.getElementById('live-count');
+        if (countEl) countEl.innerText = data.length;
+    }
+
+    // Poll every 5 seconds
+    setInterval(getLiveParticipants, 5000);
+
+    // Initial call to populate immediately
+    getLiveParticipants();
+</script>
+
+{% endblock %}
